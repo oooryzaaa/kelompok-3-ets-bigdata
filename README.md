@@ -87,15 +87,25 @@ saham-meter/
 ```
 Atau manual:
 ```bash
+# Jalankan Hadoop
 docker compose -f docker-compose-hadoop.yml up -d
 sleep 30
+
+# Lalu buat direktori HDFS
 docker exec namenode hdfs dfs -mkdir -p /data/saham/api
 docker exec namenode hdfs dfs -mkdir -p /data/saham/rss
 docker exec namenode hdfs dfs -mkdir -p /data/saham/hasil
+
+# Jalankan Kafka
 docker compose -f docker-compose-kafka.yml up -d
 sleep 20
+
+# Topic kafka
 docker exec kafka-broker kafka-topics.sh --create --topic saham-api --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 docker exec kafka-broker kafka-topics.sh --create --topic saham-rss --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+# Verifikasi topics
+docker exec kafka-broker kafka-topics --list --bootstrap-server localhost:9092
 ```
 
 ### 2. Jalankan Consumer (background)
@@ -144,3 +154,12 @@ python dashboard/app.py
 - **Tantangan**: 
 - **Solusi**: 
 
+## Urutan Menjalankan Saat Demo
+1. Buka Docker Desktop
+2. Start Hadoop → Start Kafka → Verifikasi topics
+3. Jalankan consumer_to_hdfs.py (background)
+4. Jalankan producer_api.py + producer_rss.py
+5. Tunggu ~5 menit → cek data masuk HDFS
+6. Jalankan Spark analysis.ipynb
+7. Jalankan dashboard app.py
+8. Buka localhost:5000 → demo!
