@@ -163,3 +163,55 @@ python dashboard/app.py
 6. Jalankan Spark analysis.ipynb
 7. Jalankan dashboard app.py
 8. Buka localhost:5000 → demo!
+
+## B - Producer API (Nadia)
+
+### Deskripsi
+Producer yang mengambil harga saham real-time dari yfinance dan mengirimkannya ke Kafka topic `saham-api` setiap 5 menit. Dilengkapi simulator otomatis untuk di luar jam bursa (09.00–15.30 WIB).
+
+### File yang Dibuat
+- `kafka/producer_api.py`
+
+### Prasyarat
+1. Tailscale sudah terinstall dan terhubung ke jaringan kelompok
+2. Kafka sudah berjalan di laptop Oryza (Bagian A)
+3. Topic `saham-api` sudah dibuat
+
+### Instalasi
+pip install kafka-python yfinance
+
+### Konfigurasi
+Buka `kafka/producer_api.py`, sesuaikan IP laptop Oryza:
+KAFKA_BROKER = "100.74.49.87:9092"
+
+### Cara Menjalankan
+python kafka/producer_api.py
+
+### Output yang Diharapkan
+✅ Producer siap!
+
+🚀 Producer mulai berjalan...
+
+📈 LIVE: {'ticker': 'BBCA', 'harga': 6025.0, 'volume': 205154435, 'timestamp': '2026-04-27T14:02:27'}
+
+📈 LIVE: {'ticker': 'BBRI', 'harga': 3090.0, 'volume': 254001573, 'timestamp': '2026-04-27T14:02:27'}
+
+📈 LIVE: {'ticker': 'TLKM', 'harga': 2820.0, 'volume': 135196724, 'timestamp': '2026-04-27T14:02:28'}
+
+📈 LIVE: {'ticker': 'ASII', 'harga': 6200.0, 'volume': 48836235,  'timestamp': '2026-04-27T14:02:28'}
+
+📈 LIVE: {'ticker': 'BMRI', 'harga': 4410.0, 'volume': 185660877, 'timestamp': '2026-04-27T14:02:28'}
+
+✅ 14:02:28 - Semua saham terkirim ke Kafka
+
+⏳ Tunggu 5 menit...
+
+### Verifikasi Data Masuk ke Kafka
+Jalankan di laptop Oryza:
+docker exec -it kafka-broker kafka-console-consumer --topic saham-api --from-beginning --bootstrap-server localhost:9092
+
+### Catatan
+- Jam bursa aktif: Senin–Jumat 09.00–15.30 WIB → data LIVE dari yfinance
+- Di luar jam bursa → simulator otomatis aktif (harga naik/turun ±1%)
+- Field is_simulated: true menandakan data hasil simulator
+- Jalankan setelah Bagian A (infrastruktur) sudah aktif
