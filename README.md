@@ -11,9 +11,9 @@ Sistem monitoring saham IDX real-time menggunakan Big Data Pipeline.
 | E - Dashboard | Gilang | dashboard/app.py, index.html |
 
 ## Arsitektur Sistem
-yfinance API → producer_api.py ─┐
-├─→ Kafka → consumer_to_hdfs.py → HDFS → Spark → Dashboard Flask
-RSS Feed    → producer_rss.py ─┘
+yfinance API → produceR_api.py ─┐
+                                ├─→ Kafka → consumer_to_hdfs.py → HDFS → Spark → Dashboard Flask
+RSS Feed     → producer_rss.py ─┘
 
 ## Cara Menjalankan
 
