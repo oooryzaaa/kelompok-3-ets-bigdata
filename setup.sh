@@ -1,4 +1,6 @@
-#!/bin/bash
+# Jalankan 
+./setup.sh
+
 # setup.sh — jalankan sekali untuk setup seluruh infrastruktur SahamMeter
 
 echo "=============================="
