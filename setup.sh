@@ -37,12 +37,12 @@ sleep 20
 
 # 6. Buat Kafka Topics
 echo "[6/6] Membuat Kafka topics..."
-docker exec kafka-broker kafka-topics.sh \
+docker exec kafka-broker kafka-topics \
   --create --topic saham-api \
   --bootstrap-server localhost:9092 \
   --partitions 1 --replication-factor 1
 
-docker exec kafka-broker kafka-topics.sh \
+docker exec kafka-broker kafka-topics \
   --create --topic saham-rss \
   --bootstrap-server localhost:9092 \
   --partitions 1 --replication-factor 1
@@ -50,7 +50,7 @@ docker exec kafka-broker kafka-topics.sh \
 # Verifikasi topics
 echo ""
 echo "Topics yang terbuat:"
-docker exec kafka-broker kafka-topics.sh \
+docker exec kafka-broker kafka-topics \
   --list --bootstrap-server localhost:9092
 
 echo ""
