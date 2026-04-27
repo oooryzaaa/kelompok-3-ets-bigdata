@@ -11,6 +11,10 @@ Sistem monitoring saham IDX real-time menggunakan Big Data Pipeline.
 | E - Dashboard | Gilang | dashboard/app.py, index.html |
 
 ## Arsitektur Sistem
+[  Topic Kafka  ]
+  - saham-api  → data harga saham (BBCA, BBRI, TLKM, ASII, BMRI)
+  - saham-rss  → artikel berita pasar modal
+
 [ yfinance API ]                               [ RSS Feed Berita ]
        │                                                │
        ▼                                                ▼
@@ -47,6 +51,28 @@ Sistem monitoring saham IDX real-time menggunakan Big Data Pipeline.
                         │   Dashboard   │
                         │    (Flask)    │
                         └───────────────┘
+
+##  Struktur Folder
+saham-meter/
+├── docker-compose-hadoop.yml
+├── docker-compose-kafka.yml
+├── hadoop.env
+├── setup.sh
+├── kafka/
+│   ├── producer_api.py
+│   ├── producer_rss.py
+│   └── consumer_to_hdfs.py
+├── spark/
+│   └── analysis.ipynb
+├── dashboard/
+│   ├── app.py
+│   ├── data/
+│   │   ├── live_api.json
+│   │   ├── live_rss.json
+│   │   └── spark_results.json
+│   └── templates/
+│       └── index.html
+└── README.md
 
 ## Cara Menjalankan
 
@@ -105,7 +131,13 @@ python dashboard/app.py
 ## Screenshot
 <!-- Isi setelah demo berjalan -->
 - [ ] HDFS Web UI (localhost:9870)
+![alt text](image/namenode.png.png)
+![alt text](<image/Direktori HDFS.png>)
+
 - [ ] Kafka consumer output
+![alt text](<image/docker image.png>)
+![alt text](<image/kafka topics.png>)
+
 - [ ] Dashboard berjalan
 
 ## Tantangan & Refleksi
