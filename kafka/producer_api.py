@@ -1,7 +1,5 @@
 # ============================================
 # SAHAM METER - Producer API (Upgrade: 10 Saham)
-# Nadia: fetch harga saham via yfinance
-# Jose: tambah 5 saham baru + field lengkap
 # ============================================
 
 import yfinance as yf
