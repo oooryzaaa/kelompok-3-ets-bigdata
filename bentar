@@ -1,0 +1,29 @@
+# status container docker
+docker ps
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# folder docker 
+docker exec namenode hdfs dfs -ls -R /data/saham/
+
+# Cek topics Kafka:
+docker exec kafka-broker kafka-topics --list --bootstrap-server localhost:9092
+
+# Monitor pesan masuk ke Kafka real-time:
+docker exec kafka-broker kafka-console-consumer --topic saham-api --from-beginning --bootstrap-server localhost:9092
+
+# Cek data saham yang masuk:
+docker exec namenode hdfs dfs -du -h /data/saham/api/
+
+# Cek data berita yang masuk:
+docker exec namenode hdfs dfs -ls /data/saham/rss/
+
+# Cek hasil Spark:
+docker exec namenode hdfs dfs -ls /data/saham/hasil/
+
+# Cek kesehatan HDFS:
+docker exec namenode hdfs dfsadmin -report
+
+
+
+#Buka HDFS Web UI di browser:
+http://localhost:9870
