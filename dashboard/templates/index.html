@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SahamMeter - Dashboard Big Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #edf3fb;
+      --ink: #0b1220;
+      --muted: #5f6f86;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fd;
+      --surface-glass: rgba(255, 255, 255, 0.84);
+      --surface-strong: #08152b;
+      --line: #cbd7e8;
+      --cyan: #06b6d4;
+      --blue: #123c7c;
+      --royal: #071a3a;
+      --gold: #c8a44d;
+      --violet: #4f46e5;
+      --lime: #4d7c0f;
+      --green: #067647;
+      --green-bg: #dcfce7;
+      --red: #b42318;
+      --red-bg: #fee4e2;
+      --yellow: #a15c07;
+      --yellow-bg: #fef0c7;
+      --gray-bg: #eaecf0;
+      --hero-text: #ffffff;
+      --hero-muted: #d7e4f5;
+      --shadow: 0 22px 54px rgba(8, 21, 43, 0.14);
+      --luxury-line: rgba(200, 164, 77, 0.28);
+    }
+
+    body.dark-mode {
+      --bg: #050b18;
+      --ink: #edf4ff;
+      --muted: #9fb0c8;
+      --surface: #0b1628;
+      --surface-soft: #101d33;
+      --surface-glass: rgba(11, 22, 40, 0.84);
+      --surface-strong: #030712;
+      --line: #21324d;
+      --blue: #5b8def;
+      --royal: #071a3a;
+      --gold: #d7b760;
+      --green: #7dd3a9;
+      --green-bg: rgba(6, 118, 71, 0.18);
+      --red: #fca5a5;
+      --red-bg: rgba(180, 35, 24, 0.18);
+      --yellow: #f4c76b;
+      --yellow-bg: rgba(161, 92, 7, 0.2);
+      --gray-bg: rgba(148, 163, 184, 0.16);
+      --hero-text: #ffffff;
+      --hero-muted: #b7c8e1;
+      --shadow: 0 24px 58px rgba(0, 0, 0, 0.34);
+      --luxury-line: rgba(215, 183, 96, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(200, 164, 77, 0.16), transparent 320px),
+        linear-gradient(180deg, rgba(10, 34, 74, 0.13) 0, rgba(10, 34, 74, 0) 380px),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--blue);
+    }
+
+    .app-shell {
+      width: min(1340px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 38px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 14px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(200, 164, 77, 0.24), transparent 35%),
+        linear-gradient(160deg, #061126 0%, #071a3a 54%, #0b2d57 100%);
+      box-shadow: var(--shadow);
+      color: var(--hero-text);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--luxury-line);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      background: rgba(200, 164, 77, 0.12);
+      color: #f7e7b0;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.14);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      max-width: 760px;
+      margin: 10px 0 0;
+      color: #cbd5e1;
+      color: var(--hero-muted);
+      font-size: 1rem;
+    }
+
+    .hero-actions {
+      display: grid;
+      align-content: space-between;
+      justify-items: end;
+      min-width: 270px;
+      gap: 16px;
+    }
+
+    .hero-controls {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-end;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .refresh-box {
+      flex: 1;
+      padding: 13px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.09);
+      color: #cbd5e1;
+      color: var(--hero-muted);
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    .theme-toggle {
+      display: inline-grid;
+      place-items: center;
+      min-width: 54px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8e8b5;
+      cursor: pointer;
+      font-size: 1.15rem;
+      font-weight: 900;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      background: rgba(200, 164, 77, 0.18);
+      border-color: rgba(200, 164, 77, 0.48);
+    }
+
+    .refresh-box strong {
+      display: block;
+      margin-top: 3px;
+      color: #fff;
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pipeline-pill {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .pipeline-pill span {
+      padding: 6px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8e8b5;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .ticker-tape {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-glass);
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .ticker-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      font-size: 0.88rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ticker-chip span {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .market-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric::after {
+      content: "";
+      position: absolute;
+      right: -24px;
+      bottom: -36px;
+      width: 120px;
+      height: 120px;
+      border: 1px solid var(--luxury-line);
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+
+    .metric::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent, var(--blue)), var(--gold));
+    }
+
+    .metric span {
+      position: relative;
+      z-index: 1;
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 10px;
+      color: var(--ink);
+      font-size: 1.55rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+    }
+
+    .metric small {
+      position: relative;
+      z-index: 1;
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .metric-live {
+      --accent: var(--cyan);
+    }
+
+    .metric-mover {
+      --accent: var(--violet);
+    }
+
+    .metric-news {
+      --accent: var(--lime);
+    }
+
+    .metric-spark {
+      --accent: var(--blue);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(340px, 0.9fr);
+      grid-template-areas:
+        "live news"
+        "spark news";
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-live {
+      grid-area: live;
+    }
+
+    .panel-spark {
+      grid-area: spark;
+    }
+
+    .panel-news {
+      grid-area: news;
+      position: sticky;
+      top: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--luxury-line);
+      background: rgba(200, 164, 77, 0.12);
+      color: var(--gold);
+      font-weight: 900;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.04rem;
+      letter-spacing: 0;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-align: right;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .analytics-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .chart-card {
+      grid-column: 1 / -1;
+      min-height: 320px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(200, 164, 77, 0.1), transparent 96px),
+        var(--surface);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 10px;
+      color: #344054;
+      font-size: 0.95rem;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      min-width: 560px;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th {
+      background: var(--surface-soft);
+      color: #475467;
+      font-size: 0.76rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    tbody tr {
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+      background: rgba(91, 141, 239, 0.08);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .row-up {
+      background: rgba(220, 252, 231, 0.6);
+    }
+
+    .row-down {
+      background: rgba(254, 228, 226, 0.58);
+    }
+
+    .number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .positive {
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .negative {
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-green {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .badge-red {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .badge-yellow {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+    }
+
+    .badge-gray {
+      background: var(--gray-bg);
+      color: #344054;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 260px;
+    }
+
+    .empty {
+      padding: 22px;
+      border: 1px dashed #b8c4d6;
+      border-radius: 8px;
+      color: var(--muted);
+      background: #f8fafc;
+      background: var(--surface-soft);
+      text-align: center;
+    }
+
+    .news-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-height: calc(100vh - 226px);
+      overflow: auto;
+      scrollbar-width: thin;
+    }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      background: var(--surface);
+      transition: border-color 160ms ease, transform 160ms ease;
+    }
+
+    .news-item:hover {
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+    }
+
+    .news-title {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-weight: 850;
+      line-height: 1.35;
+    }
+
+    .news-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .status-line {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1080px) {
+      .market-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "live"
+          "spark"
+          "news";
+      }
+
+      .panel-news {
+        position: static;
+      }
+
+      .news-list {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .hero-actions {
+        min-width: 0;
+        justify-items: stretch;
+      }
+
+      .hero-controls {
+        flex-direction: column;
+      }
+
+      .refresh-box {
+        text-align: left;
+      }
+
+      .theme-toggle {
+        min-height: 44px;
+      }
+
+      .pipeline-pill {
+        justify-content: flex-start;
+      }
+
+      .analytics-layout,
+      .market-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .panel-header span {
+        text-align: left;
+      }
+
+      .news-item {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .app-shell {
+        width: min(100% - 20px, 1340px);
+        padding-top: 14px;
+      }
+
+      .panel-body,
+      .panel-header {
+        padding: 12px;
+      }
+
+      .metric {
+        min-height: 96px;
+      }
+
+      table {
+        font-size: 0.86rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div class="brand">
+        <div class="brand-kicker"><span class="pulse-dot"></span>IDX live monitor</div>
+        <h1>SahamMeter</h1>
+        <p>Market tracker yang nggabungin Kafka, HDFS, Spark, dan berita live buat baca pergerakan saham IDX tanpa tampilan kaku.</p>
+      </div>
+      <div class="hero-actions">
+        <div class="hero-controls">
+          <div class="refresh-box">
+            Auto refresh tiap 30 detik
+            <strong>Last updated: <span id="lastUpdated">-</span></strong>
+          </div>
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            Dark
+          </button>
+        </div>
+        <div class="pipeline-pill" aria-label="Pipeline Big Data">
+          <span>Kafka</span>
+          <span>HDFS</span>
+          <span>Spark</span>
+          <span>Flask</span>
+        </div>
+      </div>
+    </header>
+
+    <section id="tickerTape" class="ticker-tape" aria-label="Ticker saham">
+      <div class="ticker-chip">Menunggu data live <span>Data belum tersedia</span></div>
+    </section>
+
+    <section class="market-strip" aria-label="Ringkasan pasar">
+      <div class="metric metric-live">
+        <span>Saham Live</span>
+        <strong id="metricLiveStocks">0</strong>
+        <small>Ticker yang masuk dari API terbaru</small>
+      </div>
+      <div class="metric metric-mover">
+        <span>Top Mover</span>
+        <strong id="metricTopMover">-</strong>
+        <small>Perubahan paling besar saat ini</small>
+      </div>
+      <div class="metric metric-news">
+        <span>Berita Terpantau</span>
+        <strong id="metricNews">0</strong>
+        <small>Headline RSS yang siap dianalisis</small>
+      </div>
+      <div class="metric metric-spark">
+        <span>Sumber Spark</span>
+        <strong id="metricSparkSource">-</strong>
+        <small>Status data hasil batch analytics</small>
+      </div>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="panel panel-live">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon">M</div>
+            <div>
+              <h2>Market Watch</h2>
+              <span>Harga, change, dan volume saham live</span>
+            </div>
+          </div>
+          <span id="liveTimestamp">Timestamp data terakhir: -</span>
+        </div>
+        <div class="panel-body">
+          <div id="liveStockTable"></div>
+        </div>
+      </section>
+
+      <aside class="panel panel-news">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon">N</div>
+            <div>
+              <h2>News Radar</h2>
+              <span>Headline terbaru dan sentimennya</span>
+            </div>
+          </div>
+          <span id="newsCount">0 berita</span>
+        </div>
+        <div class="panel-body">
+          <div id="latestNews"></div>
+        </div>
+      </aside>
+
+      <section class="panel panel-spark">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon">S</div>
+            <div>
+              <h2>Spark Insights</h2>
+              <span>Return, volatilitas, dan frekuensi berita</span>
+            </div>
+          </div>
+          <span id="sparkGeneratedAt">Generated at: -</span>
+        </div>
+        <div class="panel-body">
+          <div class="analytics-layout">
+            <div>
+              <h3 class="section-title">Return Per Saham</h3>
+              <div id="returnTable"></div>
+            </div>
+            <div>
+              <h3 class="section-title">Volatilitas</h3>
+              <div id="volatilityTable"></div>
+            </div>
+            <div class="chart-card">
+              <h3 class="section-title">Frekuensi Sebutan Perusahaan di Berita</h3>
+              <div id="newsFrequencyEmpty" class="empty" hidden>Data belum tersedia</div>
+              <div class="chart-wrap">
+                <canvas id="newsFrequencyChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="loadStatus" class="status-line"></div>
+  </main>
+
+  <script>
+    let newsFrequencyChart = null;
+
+    function applyTheme(theme) {
+      const isDark = theme === "dark";
+      document.body.classList.toggle("dark-mode", isDark);
+      document.getElementById("themeToggle").textContent = isDark ? "Light" : "Dark";
+      localStorage.setItem("sahammeter-theme", theme);
+
+      if (newsFrequencyChart) {
+        const mutedColor = getComputedStyle(document.body).getPropertyValue("--muted").trim();
+        newsFrequencyChart.options.scales.x.ticks = newsFrequencyChart.options.scales.x.ticks || {};
+        newsFrequencyChart.options.scales.y.ticks = newsFrequencyChart.options.scales.y.ticks || {};
+        newsFrequencyChart.options.scales.x.ticks.color = mutedColor;
+        newsFrequencyChart.options.scales.y.ticks.color = mutedColor;
+        newsFrequencyChart.update();
+      }
+    }
+
+    function initTheme() {
+      const storedTheme = localStorage.getItem("sahammeter-theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+
+      document.getElementById("themeToggle").addEventListener("click", () => {
+        applyTheme(document.body.classList.contains("dark-mode") ? "light" : "dark");
+      });
+    }
+
+    function formatNumber(value, fractionDigits = 2) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "-";
+
+      return new Intl.NumberFormat("id-ID", {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits
+      }).format(number);
+    }
+
+    function formatInteger(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "-";
+
+      return new Intl.NumberFormat("id-ID", {
+        maximumFractionDigits: 0
+      }).format(number);
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+
+      return new Intl.DateTimeFormat("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "medium"
+      }).format(date);
+    }
+
+    function setLastUpdated() {
+      const now = new Date();
+      document.getElementById("lastUpdated").textContent = now.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function safeText(value) {
+      if (value === null || value === undefined || value === "") return "-";
+      return String(value);
+    }
+
+    function badgeClass(value) {
+      const normalized = safeText(value).toLowerCase();
+      if (["naik", "rendah", "positif"].includes(normalized)) return "badge badge-green";
+      if (["turun", "tinggi", "negatif"].includes(normalized)) return "badge badge-red";
+      if (["sedang", "netral"].includes(normalized)) return "badge badge-yellow";
+      return "badge badge-gray";
+    }
+
+    function changeClass(value) {
+      const number = Number(value);
+      if (number > 0) return "positive";
+      if (number < 0) return "negative";
+      return "";
+    }
+
+    function renderEmpty(targetId) {
+      document.getElementById(targetId).innerHTML = '<div class="empty">Data belum tersedia</div>';
+    }
+
+    function renderTickerTape(rows) {
+      const tickerTape = document.getElementById("tickerTape");
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        tickerTape.innerHTML = '<div class="ticker-chip">Menunggu data live <span>Data belum tersedia</span></div>';
+        return;
+      }
+
+      tickerTape.innerHTML = rows.map((row) => {
+        const change = Number(row.change_pct);
+        const changeText = Number.isFinite(change) ? `${formatNumber(change)}%` : "-";
+
+        return `
+          <div class="ticker-chip">
+            ${safeText(row.ticker)}
+            <span>${formatNumber(row.harga)}</span>
+            <strong class="${changeClass(change)}">${changeText}</strong>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function updateMarketMetrics(data) {
+      const liveRows = Array.isArray(data.live_api) ? data.live_api : [];
+      const newsRows = Array.isArray(data.live_rss) ? data.live_rss : [];
+      const spark = data.spark || {};
+      const metadata = spark.metadata || {};
+
+      document.getElementById("metricLiveStocks").textContent = formatInteger(liveRows.length);
+      document.getElementById("metricNews").textContent = formatInteger(newsRows.length);
+      document.getElementById("metricSparkSource").textContent = metadata.saham_dari_hdfs ? "HDFS" : "-";
+
+      const topMover = liveRows
+        .map((row) => ({ ticker: row.ticker, change: Number(row.change_pct) }))
+        .filter((row) => row.ticker && Number.isFinite(row.change))
+        .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))[0];
+
+      const topMoverEl = document.getElementById("metricTopMover");
+      topMoverEl.textContent = topMover ? `${topMover.ticker} ${formatNumber(topMover.change)}%` : "-";
+      topMoverEl.className = topMover ? changeClass(topMover.change) : "";
+    }
+
+    function renderReturnTable(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        renderEmpty("returnTable");
+        return;
+      }
+
+      const body = rows.map((row) => {
+        const status = safeText(row.status);
+        const statusLower = status.toLowerCase();
+        const rowClass = statusLower === "naik" ? "row-up" : statusLower === "turun" ? "row-down" : "";
+
+        return `
+          <tr class="${rowClass}">
+            <td><strong>${safeText(row.ticker)}</strong></td>
+            <td class="number">${formatNumber(row.harga_awal)}</td>
+            <td class="number">${formatNumber(row.harga_terkini)}</td>
+            <td class="number ${changeClass(row.return_pct)}">${formatNumber(row.return_pct)}%</td>
+            <td><span class="${badgeClass(status)}">${status}</span></td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("returnTable").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th class="number">Harga Awal</th>
+                <th class="number">Harga Terkini</th>
+                <th class="number">Return%</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderVolatilityTable(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        renderEmpty("volatilityTable");
+        return;
+      }
+
+      const body = rows.map((row) => `
+        <tr>
+          <td><strong>${safeText(row.ticker)}</strong></td>
+          <td class="number">${formatNumber(row.stddev_harga)}</td>
+          <td class="number">${formatNumber(row.range_intraday)}</td>
+          <td><span class="${badgeClass(row.level_volatilitas)}">${safeText(row.level_volatilitas)}</span></td>
+        </tr>
+      `).join("");
+
+      document.getElementById("volatilityTable").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th class="number">Stddev</th>
+                <th class="number">Range Intraday</th>
+                <th>Level</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderNewsFrequencyChart(rows) {
+      const empty = document.getElementById("newsFrequencyEmpty");
+      const canvas = document.getElementById("newsFrequencyChart");
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        empty.hidden = false;
+        canvas.hidden = true;
+        if (newsFrequencyChart) {
+          newsFrequencyChart.destroy();
+          newsFrequencyChart = null;
+        }
+        return;
+      }
+
+      empty.hidden = true;
+      canvas.hidden = false;
+
+      const labels = rows.map((row) => safeText(row.perusahaan));
+      const values = rows.map((row) => Number(row.jumlah_sebutan) || 0);
+
+      if (newsFrequencyChart) {
+        newsFrequencyChart.data.labels = labels;
+        newsFrequencyChart.data.datasets[0].data = values;
+        newsFrequencyChart.update();
+        return;
+      }
+
+      newsFrequencyChart = new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Jumlah Sebutan",
+            data: values,
+            backgroundColor: ["#0891b2", "#2563eb", "#7c3aed", "#65a30d", "#f97316"],
+            borderColor: "#0f172a",
+            borderWidth: 0,
+            borderRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: getComputedStyle(document.body).getPropertyValue("--muted").trim()
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0,
+                color: getComputedStyle(document.body).getPropertyValue("--muted").trim()
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderLiveStocks(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        renderEmpty("liveStockTable");
+        document.getElementById("liveTimestamp").textContent = "Timestamp data terakhir: -";
+        return;
+      }
+
+      const latestTimestamp = rows
+        .map((row) => row.timestamp)
+        .filter(Boolean)
+        .sort()
+        .at(-1);
+
+      document.getElementById("liveTimestamp").textContent = `Timestamp data terakhir: ${formatDateTime(latestTimestamp)}`;
+
+      const body = rows.map((row) => `
+        <tr>
+          <td><strong>${safeText(row.ticker)}</strong></td>
+          <td class="number">${formatNumber(row.harga)}</td>
+          <td class="number ${changeClass(row.change_pct)}">${formatNumber(row.change_pct)}%</td>
+          <td class="number">${formatInteger(row.volume)}</td>
+        </tr>
+      `).join("");
+
+      document.getElementById("liveStockTable").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th class="number">Harga Terkini</th>
+                <th class="number">Change%</th>
+                <th class="number">Volume</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderLatestNews(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        renderEmpty("latestNews");
+        document.getElementById("newsCount").textContent = "0 berita";
+        return;
+      }
+
+      const sortedRows = [...rows].sort((a, b) => {
+        const dateA = new Date(a.waktu_terbit).getTime() || 0;
+        const dateB = new Date(b.waktu_terbit).getTime() || 0;
+        return dateB - dateA;
+      }).slice(0, 10);
+
+      document.getElementById("newsCount").textContent = `${sortedRows.length} berita terbaru`;
+
+      const items = sortedRows.map((row) => {
+        const title = safeText(row.judul);
+        const url = row.url || "#";
+        const target = row.url ? 'target="_blank" rel="noopener noreferrer"' : "";
+
+        return `
+          <li class="news-item">
+            <div>
+              <a class="news-title" href="${url}" ${target}>${title}</a>
+              <div class="news-meta">
+                <span>${safeText(row.sumber)}</span>
+                <span>${formatDateTime(row.waktu_terbit)}</span>
+              </div>
+            </div>
+            <div>
+              <span class="${badgeClass(row.sentimen)}">${safeText(row.sentimen)}</span>
+            </div>
+          </li>
+        `;
+      }).join("");
+
+      document.getElementById("latestNews").innerHTML = `<ul class="news-list">${items}</ul>`;
+    }
+
+    async function fetchData() {
+      const loadStatus = document.getElementById("loadStatus");
+
+      try {
+        const response = await fetch("/api/data", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const spark = data.spark || {};
+
+        updateMarketMetrics(data);
+        renderTickerTape(data.live_api || []);
+        renderLiveStocks(data.live_api || []);
+        renderLatestNews(data.live_rss || []);
+        renderReturnTable(spark.analisis_1_return || []);
+        renderVolatilityTable(spark.analisis_2_volatilitas || []);
+        renderNewsFrequencyChart(spark.analisis_3_frekuensi_berita || []);
+
+        const generatedAt = spark.metadata && spark.metadata.generated_at ? formatDateTime(spark.metadata.generated_at) : "-";
+        document.getElementById("sparkGeneratedAt").textContent = `Generated at: ${generatedAt}`;
+
+        setLastUpdated();
+        loadStatus.textContent = "";
+      } catch (error) {
+        setLastUpdated();
+        loadStatus.textContent = `Gagal memuat data: ${error.message}`;
+      }
+    }
+
+    initTheme();
+    fetchData();
+    setInterval(fetchData, 30000);
+  </script>
+</body>
+</html>
