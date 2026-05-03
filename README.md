@@ -218,3 +218,314 @@ docker exec -it kafka-broker kafka-console-consumer --topic saham-api --from-beg
 - Di luar jam bursa → simulator otomatis aktif (harga naik/turun ±1%)
 - Field is_simulated: true menandakan data hasil simulator
 - Jalankan setelah Bagian A (infrastruktur) sudah aktif
+
+
+# Producer RSS & Consumer to HDFS (Putri Joselina Silitonga)
+
+Dokumentasi teknis untuk dua komponen pipeline SahamMeter: **Producer RSS** yang mengambil dan mempublikasikan berita pasar modal ke Kafka, serta **Consumer to HDFS** yang mengonsumsi pesan dari Kafka dan menyimpannya ke Hadoop HDFS.
+
+---
+
+## Daftar Isi
+
+- [Producer RSS](#producer-rss)
+- [Consumer to HDFS](#consumer-to-hdfs)
+- [Bukti Sistem Berjalan](#bukti-sistem-berjalan)
+
+---
+
+## Producer RSS
+
+### Deskripsi
+
+Producer RSS bertugas melakukan polling berita keuangan dan pasar modal dari sumber RSS Indonesia secara periodik. Setiap artikel yang belum pernah dikirim akan dideteksi sentimennya secara otomatis, lalu dipublikasikan ke Kafka topic `saham-rss`. Sistem dirancang idempoten — artikel yang sudah terkirim tidak akan pernah dikirim ulang meskipun masih muncul di feed, bahkan setelah producer di-restart.
+
+---
+
+### Lokasi File
+
+| File | Keterangan |
+|------|------------|
+| `kafka/producer_rss.py` | Script utama producer RSS |
+| `kafka/sent_ids.txt` | Penyimpanan persisten ID artikel yang sudah dikirim |
+
+---
+
+### Dependensi
+
+```bash
+pip install kafka-python feedparser
+```
+
+---
+
+### Konfigurasi
+
+| Variabel | Nilai Default | Keterangan |
+|----------|---------------|------------|
+| `KAFKA_BROKER` | `100.74.49.87:9092` | IP broker Kafka via Tailscale |
+| `KAFKA_TOPIC` | `saham-rss` | Nama topic Kafka tujuan |
+| `INTERVAL` | `300` | Jeda antar polling dalam detik |
+| `SENT_IDS_FILE` | `kafka/sent_ids.txt` | File penyimpanan ID artikel |
+
+---
+
+### Sumber RSS
+
+| Media | URL Feed |
+|-------|----------|
+| CNN Indonesia (Ekonomi) | `https://www.cnnindonesia.com/ekonomi/rss` |
+| Kompas Money | `https://rss.kompas.com/feed/kompas.com/money` |
+| Tempo Nasional | `https://rss.tempo.co/nasional` |
+
+---
+
+### Cara Menjalankan
+
+Pastikan Kafka broker aktif dan topic `saham-rss` sudah dibuat sebelum menjalankan script ini.
+
+```bash
+python kafka/producer_rss.py
+```
+
+---
+
+### Alur Kerja
+
+1. Memuat daftar ID artikel yang sudah dikirim dari `sent_ids.txt`
+2. Melakukan fetch setiap URL feed menggunakan `feedparser`
+3. Memeriksa setiap artikel — jika ID sudah ada di daftar, artikel dilewati
+4. Menganalisis sentimen artikel berdasarkan kata kunci di judul
+5. Mengemas data dalam format JSON dan mengirim ke Kafka
+6. Menyimpan ID artikel baru ke `sent_ids.txt`
+7. Menunggu 5 menit, lalu mengulang dari langkah 1
+
+---
+
+### Mekanisme Deduplikasi
+
+Setiap artikel diidentifikasi menggunakan **MD5 hash 8 karakter dari URL-nya**. Hash disimpan secara persisten di `kafka/sent_ids.txt`. Artikel yang hash-nya sudah tercatat akan dilewati tanpa dikirim ulang.
+
+**Contoh isi `kafka/sent_ids.txt`:**
+
+```
+a3f1e2c4
+b9d2a7f1
+c8e3d501
+d4f7b293
+```
+
+---
+
+### Deteksi Sentimen Otomatis
+
+Sentimen dideteksi berdasarkan kata kunci yang ditemukan dalam judul artikel.
+
+| Label | Kata Kunci Pemicu |
+|-------|-------------------|
+| `positif` | naik, bullish, untung, rekor, tumbuh, profit, meningkat, optimis |
+| `negatif` | turun, bearish, rugi, anjlok, merosot, koreksi, jatuh, pesimis |
+| `netral` | tidak ditemukan kata kunci dari kedua kategori di atas |
+
+---
+
+### Struktur Data yang Dikirim ke Kafka
+
+```json
+{
+  "id": "a3f1e2c4",
+  "judul": "BNI Catat Kinerja Solid Kuartal I 2026",
+  "url": "https://www.cnnindonesia.com/ekonomi/...",
+  "ringkasan": "PT Bank Negara Indonesia mencatat pertumbuhan laba bersih...",
+  "sumber": "CNN Indonesia",
+  "sentimen": "positif",
+  "waktu_terbit": "Thu, 30 Apr 2026 01:30:00 +0700",
+  "timestamp": "2026-04-30T01:44:10"
+}
+```
+
+> Field `ringkasan` dibatasi maksimal **300 karakter** dari konten artikel.
+
+---
+
+### Contoh Output Terminal
+
+```
+Producer RSS siap. Mulai polling...
+[01:44:10] Terkirim: BNI Catat Kinerja Solid Kuartal I 2026
+[01:44:10] Terkirim: Prabowo Groundbreaking 13 Proyek Hilirisasi Senilai Rp 116 T
+[01:44:10] Terkirim: Bus Jemaah Haji Indonesia di Madinah Mengalami Kecelakaan
+[01:44:10] Terkirim: Fakta-fakta Terkini Kecelakaan Kereta di Bekasi Timur
+[01:44:10] 150 artikel baru dikirim. Tunggu 5 menit...
+[01:49:11] 0 artikel baru dikirim. Tunggu 5 menit...
+```
+
+> Output `0 artikel baru dikirim` pada siklus kedua membuktikan deduplikasi berjalan dengan benar.
+
+---
+
+### Verifikasi Data di Kafka
+
+```bash
+docker exec -it kafka-broker kafka-console-consumer.sh \
+  --topic saham-rss \
+  --from-beginning \
+  --bootstrap-server localhost:9092
+```
+
+---
+
+---
+
+## Consumer to HDFS
+
+### Deskripsi
+
+Consumer membaca pesan secara paralel dari dua Kafka topic (`saham-api` dan `saham-rss`) menggunakan multi-threading, lalu menyimpan data ke Hadoop HDFS dalam format JSON bertimestamp setiap 5 menit. Data terbaru juga disalin ke file lokal yang digunakan langsung oleh dashboard Flask sebagai cache.
+
+Arsitektur menggunakan **buffer berbasis thread** — dua thread berjalan paralel mengisi buffer masing-masing, sementara main thread menguras buffer secara terjadwal dan mem-flush hasilnya ke HDFS.
+
+---
+
+### Lokasi File
+
+| File | Keterangan |
+|------|------------|
+| `kafka/consumer_to_hdfs.py` | Script utama consumer |
+| `dashboard/data/live_api.json` | Cache lokal 50 data harga saham terbaru |
+| `dashboard/data/live_rss.json` | Cache lokal 50 berita terbaru |
+
+---
+
+### Dependensi
+
+```bash
+pip install kafka-python hdfs
+```
+
+---
+
+### Konfigurasi
+
+| Variabel | Nilai Default | Keterangan |
+|----------|---------------|------------|
+| `KAFKA_BROKER` | `100.74.49.87:9092` | IP broker Kafka via Tailscale |
+| `TOPIC_API` | `saham-api` | Topic Kafka data harga saham |
+| `TOPIC_RSS` | `saham-rss` | Topic Kafka data berita |
+| `HDFS_URL` | `http://100.74.49.87:9870` | URL NameNode HDFS |
+| `HDFS_USER` | `root` | User autentikasi HDFS |
+| `HDFS_PATH_API` | `/data/saham/api` | Path HDFS untuk data harga |
+| `HDFS_PATH_RSS` | `/data/saham/rss` | Path HDFS untuk data berita |
+| `INTERVAL` | `300` | Interval flush ke HDFS dalam detik |
+
+---
+
+### Cara Menjalankan
+
+> **Penting:** Consumer harus dijalankan **sebelum** producers aktif agar tidak ada pesan yang terlewat.
+
+```bash
+python kafka/consumer_to_hdfs.py &
+```
+
+---
+
+### Arsitektur Internal
+
+| Komponen | Tugas |
+|----------|-------|
+| Thread 1 | Consume topic `saham-api` secara terus-menerus, isi `buffer_api` |
+| Thread 2 | Consume topic `saham-rss` secara terus-menerus, isi `buffer_rss` |
+| Main Thread | Setiap 5 menit: ambil snapshot buffer → tulis ke HDFS → update file lokal |
+
+Setiap buffer dilindungi oleh `threading.Lock()` untuk mencegah race condition saat thread consumer dan main thread mengakses buffer secara bersamaan.
+
+---
+
+### Format Penyimpanan di HDFS
+
+File disimpan dengan nama bertimestamp sehingga setiap siklus menghasilkan file baru tanpa menimpa data sebelumnya.
+
+| Path HDFS | Contoh Nama File |
+|-----------|------------------|
+| `/data/saham/api/` | `2026-04-30_01-21-57.json` |
+| `/data/saham/api/` | `2026-04-30_01-27-05.json` |
+| `/data/saham/rss/` | `2026-04-30_01-22-04.json` |
+| `/data/saham/rss/` | `2026-04-30_01-34-43.json` |
+
+Setiap file berisi array JSON dari semua pesan yang masuk selama interval 5 menit terakhir.
+
+---
+
+### Output Lokal untuk Dashboard
+
+| File | Isi | Digunakan Oleh |
+|------|-----|----------------|
+| `dashboard/data/live_api.json` | 50 data harga saham terbaru | `dashboard/app.py` |
+| `dashboard/data/live_rss.json` | 50 berita terbaru | `dashboard/app.py` |
+
+File ini memungkinkan Flask membaca data terbaru tanpa perlu query langsung ke HDFS setiap request.
+
+---
+
+### Contoh Output Terminal
+
+```
+Consumer to HDFS siap. Mulai membaca dari Kafka...
+[01:21:55] Consumer saham-api siap.
+[01:21:55] Consumer saham-rss siap.
+[01:26:57] api: 10 record -> HDFS /data/saham/api/2026-04-30_01-21-57.json
+[01:26:57] rss: 150 record -> HDFS /data/saham/rss/2026-04-30_01-22-04.json
+[01:26:57] Lokal diupdate: dashboard/data/live_api.json
+[01:26:57] Lokal diupdate: dashboard/data/live_rss.json
+[01:31:57] api: 10 record -> HDFS /data/saham/api/2026-04-30_01-27-05.json
+[01:31:57] rss: 0 record, skip.
+```
+
+---
+
+### Verifikasi Data di HDFS
+
+```bash
+# Cek daftar file yang tersimpan
+docker exec namenode hdfs dfs -ls /data/saham/api/
+docker exec namenode hdfs dfs -ls /data/saham/rss/
+
+# Baca isi file terbaru
+docker exec namenode hdfs dfs -cat /data/saham/api/2026-04-30_01-48-37.json | head -30
+```
+
+---
+
+### Catatan Teknis
+
+- Consumer menggunakan `auto_offset_reset="earliest"` — jika di-restart, semua pesan lama dibaca ulang dari awal. Berguna untuk recovery, namun dapat menghasilkan duplikasi record di HDFS.
+- `consumer_timeout_ms=1000` memastikan consumer tidak blocking saat tidak ada pesan baru masuk.
+- Jika koneksi HDFS gagal pada satu siklus, error dicatat ke stdout tetapi consumer tetap berjalan dan mencoba kembali pada siklus berikutnya.
+- Direktori `dashboard/data/` dibuat otomatis oleh script jika belum ada.
+
+---
+
+---
+
+## Bukti Sistem Berjalan
+
+### Producer RSS — Artikel Terkirim ke Kafka
+
+![Producer RSS berhasil mengirim 150 artikel ke Kafka topic saham-rss](image/bigdata1.png)
+
+> Screenshot menunjukkan producer berhasil mengirim 150 artikel pada polling pertama pukul 01:44:10. Polling berikutnya pukul 01:49:11 menghasilkan 0 artikel baru, membuktikan mekanisme deduplikasi berjalan sempurna.
+
+---
+
+### Producer API — Data Saham Terkirim ke Kafka
+
+![Producer API mengirim 10 saham dalam mode simulasi](image/bigdata2.png)
+
+> Screenshot menunjukkan 10 saham blue-chip IDX berhasil dikirim ke Kafka topic `saham-api` dalam mode SIMULASI. Data mencakup harga, persentase perubahan, dan volume transaksi untuk setiap emiten.
+
+---
+
+### Consumer — Data Berhasil Masuk ke HDFS
+
+![Verifikasi file JSON di HDFS dan live_api.json lokal berhasil dibuat](image/bigdata4.png)
