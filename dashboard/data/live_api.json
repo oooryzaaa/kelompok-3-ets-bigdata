@@ -1,0 +1,112 @@
+[
+  {
+    "ticker": "PGAS",
+    "harga": 1445.36,
+    "open": 1461.23,
+    "high": 1461.27,
+    "low": 1438.67,
+    "volume": 6046625,
+    "change_pct": -1.0861,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.989167"
+  },
+  {
+    "ticker": "INDF",
+    "harga": 7118.41,
+    "open": 7130.67,
+    "high": 7134.28,
+    "low": 7108.01,
+    "volume": 7989229,
+    "change_pct": -0.1719,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.927042"
+  },
+  {
+    "ticker": "ICBP",
+    "harga": 11338.33,
+    "open": 11545.97,
+    "high": 11557.8,
+    "low": 11293.8,
+    "volume": 8023972,
+    "change_pct": -1.7984,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.859005"
+  },
+  {
+    "ticker": "GOTO",
+    "harga": 87.6,
+    "open": 87.74,
+    "high": 88.15,
+    "low": 86.99,
+    "volume": 8837804,
+    "change_pct": -0.1596,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.797747"
+  },
+  {
+    "ticker": "UNVR",
+    "harga": 2079.9,
+    "open": 2104.94,
+    "high": 2109.41,
+    "low": 2079.55,
+    "volume": 2659352,
+    "change_pct": -1.1896,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.737854"
+  },
+  {
+    "ticker": "BMRI",
+    "harga": 6051.88,
+    "open": 6143.93,
+    "high": 6167.31,
+    "low": 6042.57,
+    "volume": 2930974,
+    "change_pct": -1.4982,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.671154"
+  },
+  {
+    "ticker": "ASII",
+    "harga": 5249.9,
+    "open": 5148.15,
+    "high": 5275.36,
+    "low": 5145.94,
+    "volume": 4754494,
+    "change_pct": 1.9764,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.615540"
+  },
+  {
+    "ticker": "TLKM",
+    "harga": 3925.12,
+    "open": 3873.91,
+    "high": 3938.93,
+    "low": 3871.16,
+    "volume": 4301228,
+    "change_pct": 1.3219,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.553681"
+  },
+  {
+    "ticker": "BBRI",
+    "harga": 4783.64,
+    "open": 4809.24,
+    "high": 4814.99,
+    "low": 4756.41,
+    "volume": 1505290,
+    "change_pct": -0.5323,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.490470"
+  },
+  {
+    "ticker": "BBCA",
+    "harga": 9577.66,
+    "open": 9588.45,
+    "high": 9604.1,
+    "low": 9510.67,
+    "volume": 3226870,
+    "change_pct": -0.1125,
+    "is_simulated": "true",
+    "timestamp": "2026-04-30T01:44:18.086894"
+  }
+]
