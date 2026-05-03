@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "project": "SahamMeter",
+    "kelompok": 3,
+    "generated_at": "2026-05-03T14:53:06.366199",
+    "spark_version": "3.5.1",
+    "saham_dari_hdfs": true,
+    "berita_dari_hdfs": true,
+    "hdfs_base": "hdfs://100.74.49.87:8020"
+  },
+  "analisis_1_return": [
+    {
+      "ticker": "INDF",
+      "harga_awal": 7130.67,
+      "harga_terkini": 7304.04,
+      "harga_tertinggi": 7336.56,
+      "harga_terendah": 7060.46,
+      "total_volume": 24435923,
+      "return_pct": 2.4313,
+      "status": "NAIK"
+    },
+    {
+      "ticker": "ASII",
+      "harga_awal": 5148.15,
+      "harga_terkini": 5251.12,
+      "harga_tertinggi": 5275.36,
+      "harga_terendah": 5099.13,
+      "total_volume": 24583782,
+      "return_pct": 2.0001,
+      "status": "NAIK"
+    },
+    {
+      "ticker": "ICBP",
+      "harga_awal": 11545.97,
+      "harga_terkini": 11655.09,
+      "harga_tertinggi": 11819.64,
+      "harga_terendah": 11293.8,
+      "total_volume": 19026414,
+      "return_pct": 0.9451,
+      "status": "NAIK"
+    },
+    {
+      "ticker": "TLKM",
+      "harga_awal": 3873.91,
+      "harga_terkini": 3895.08,
+      "harga_tertinggi": 3962.62,
+      "harga_terendah": 3812.55,
+      "total_volume": 32603401,
+      "return_pct": 0.5465,
+      "status": "NAIK"
+    },
+    {
+      "ticker": "GOTO",
+      "harga_awal": 87.74,
+      "harga_terkini": 87.98,
+      "harga_tertinggi": 89.08,
+      "harga_terendah": 86.81,
+      "total_volume": 24172205,
+      "return_pct": 0.2735,
+      "status": "NAIK"
+    },
+    {
+      "ticker": "BMRI",
+      "harga_awal": 6143.93,
+      "harga_terkini": 6133.44,
+      "harga_tertinggi": 6168.77,
+      "harga_terendah": 6031.79,
+      "total_volume": 28199297,
+      "return_pct": -0.1707,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "UNVR",
+      "harga_awal": 2104.94,
+      "harga_terkini": 2096.02,
+      "harga_tertinggi": 2162.11,
+      "harga_terendah": 2064.34,
+      "total_volume": 24791960,
+      "return_pct": -0.4238,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "PGAS",
+      "harga_awal": 1461.23,
+      "harga_terkini": 1448.01,
+      "harga_tertinggi": 1503.68,
+      "harga_terendah": 1433.88,
+      "total_volume": 34390053,
+      "return_pct": -0.9047,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "BBRI",
+      "harga_awal": 4809.24,
+      "harga_terkini": 4758.6,
+      "harga_tertinggi": 4834.18,
+      "harga_terendah": 4728.82,
+      "total_volume": 20855132,
+      "return_pct": -1.053,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "BBCA",
+      "harga_awal": 9588.45,
+      "harga_terkini": 9415.75,
+      "harga_tertinggi": 9604.1,
+      "harga_terendah": 9252.17,
+      "total_volume": 25166253,
+      "return_pct": -1.8011,
+      "status": "TURUN"
+    }
+  ],
+  "analisis_2_volatilitas": [
+    {
+      "ticker": "PGAS",
+      "stddev_harga": 27.0451,
+      "rata_rata_harga": 1461.414,
+      "high": 1503.68,
+      "low": 1433.88,
+      "jumlah_snapshot": 5,
+      "range_intraday": 69.8,
+      "cv_pct": 1.8506,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "ICBP",
+      "stddev_harga": 165.5878,
+      "rata_rata_harga": 11586.426,
+      "high": 11819.64,
+      "low": 11293.8,
+      "jumlah_snapshot": 5,
+      "range_intraday": 525.84,
+      "cv_pct": 1.4292,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "INDF",
+      "stddev_harga": 94.3632,
+      "rata_rata_harga": 7180.122,
+      "high": 7336.56,
+      "low": 7060.46,
+      "jumlah_snapshot": 5,
+      "range_intraday": 276.1,
+      "cv_pct": 1.3142,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "UNVR",
+      "stddev_harga": 26.3422,
+      "rata_rata_harga": 2108.47,
+      "high": 2162.11,
+      "low": 2064.34,
+      "jumlah_snapshot": 5,
+      "range_intraday": 97.77,
+      "cv_pct": 1.2494,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "TLKM",
+      "stddev_harga": 45.09,
+      "rata_rata_harga": 3891.708,
+      "high": 3962.62,
+      "low": 3812.55,
+      "jumlah_snapshot": 5,
+      "range_intraday": 150.07,
+      "cv_pct": 1.1586,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "BBCA",
+      "stddev_harga": 99.9134,
+      "rata_rata_harga": 9409.992,
+      "high": 9604.1,
+      "low": 9252.17,
+      "jumlah_snapshot": 5,
+      "range_intraday": 351.93,
+      "cv_pct": 1.0618,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "BBRI",
+      "stddev_harga": 25.6165,
+      "rata_rata_harga": 4777.056,
+      "high": 4834.18,
+      "low": 4728.82,
+      "jumlah_snapshot": 5,
+      "range_intraday": 105.36,
+      "cv_pct": 0.5362,
+      "level_volatilitas": "SEDANG"
+    },
+    {
+      "ticker": "BMRI",
+      "stddev_harga": 30.3429,
+      "rata_rata_harga": 6088.966,
+      "high": 6168.77,
+      "low": 6031.79,
+      "jumlah_snapshot": 5,
+      "range_intraday": 136.98,
+      "cv_pct": 0.4983,
+      "level_volatilitas": "RENDAH"
+    },
+    {
+      "ticker": "GOTO",
+      "stddev_harga": 0.3272,
+      "rata_rata_harga": 88.054,
+      "high": 89.08,
+      "low": 86.81,
+      "jumlah_snapshot": 5,
+      "range_intraday": 2.27,
+      "cv_pct": 0.3716,
+      "level_volatilitas": "RENDAH"
+    },
+    {
+      "ticker": "ASII",
+      "stddev_harga": 14.3089,
+      "rata_rata_harga": 5235.974,
+      "high": 5275.36,
+      "low": 5099.13,
+      "jumlah_snapshot": 5,
+      "range_intraday": 176.23,
+      "cv_pct": 0.2733,
+      "level_volatilitas": "RENDAH"
+    }
+  ],
+  "analisis_3_frekuensi_berita": [
+    {
+      "perusahaan": "Mandiri",
+      "jumlah_sebutan": 3,
+      "keywords": [
+        "Mandiri",
+        "Bank Mandiri"
+      ]
+    },
+    {
+      "perusahaan": "BCA",
+      "jumlah_sebutan": 0,
+      "keywords": [
+        "BCA",
+        "Bank Central Asia"
+      ]
+    },
+    {
+      "perusahaan": "BRI",
+      "jumlah_sebutan": 0,
+      "keywords": [
+        "BRI",
+        "Bank Rakyat Indonesia"
+      ]
+    },
+    {
+      "perusahaan": "Telkom",
+      "jumlah_sebutan": 0,
+      "keywords": [
+        "Telkom",
+        "TLKM"
+      ]
+    },
+    {
+      "perusahaan": "Astra",
+      "jumlah_sebutan": 0,
+      "keywords": [
+        "Astra",
+        "ASII"
+      ]
+    }
+  ]
+}
