@@ -23,7 +23,40 @@ docker exec namenode hdfs dfs -ls /data/saham/hasil/
 # Cek kesehatan HDFS:
 docker exec namenode hdfs dfsadmin -report
 
-
-
 #Buka HDFS Web UI di browser:
 http://localhost:9870
+
+######################
+[A]
+source venv/bin/activate
+docker compose -f docker-compose-hadoop.yml up -d
+docker compose -f docker-compose-kafka.yml up -d
+
+docker ps
+# Buka localhost:9870
+
+docker exec namenode hdfs dfs -ls /data/saham/
+docker exec kafka-broker kafka-topics --list --bootstrap-server localhost:9092
+
+[B]
+venv/bin/python kafka/consumer_to_hdfs.py &
+
+[C]
+venv/bin/python kafka/producer_api.py &
+venv/bin/python kafka/producer_rss.py &
+
+[A]
+docker exec kafka-broker kafka-console-consumer \
+  --topic saham-api \
+  --from-beginning \
+  --bootstrap-server localhost:9092
+
+[ ]
+docker exec namenode hdfs dfs -ls /data/saham/api/
+docker exec namenode hdfs dfs -ls /data/saham/rss/
+
+[D]
+jupyter notebook spark/analysis.ipynb
+
+[E]
+python dashboard/app.py

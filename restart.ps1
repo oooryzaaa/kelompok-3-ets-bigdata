@@ -6,4 +6,4 @@ Start-Sleep -Seconds 20
 docker exec kafka-broker kafka-topics --list --bootstrap-server localhost:9092
 
 # jalankan 
-.\restart.ps1
+# .\restart.ps1
