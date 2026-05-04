@@ -22,8 +22,13 @@ services:
     restart: always
     ports:
       - "9864:9864"
+      - "9866:9866"
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
+      HDFS_CONF_dfs_datanode_address: "0.0.0.0:9866"
+      HDFS_CONF_dfs_datanode_http_address: "0.0.0.0:9864"
+      HDFS_CONF_dfs_datanode_hostname: "100.74.49.87"
+      HDFS_CONF_dfs_client_use_datanode_hostname: "true"
     env_file:
       - ./hadoop.env
     volumes:

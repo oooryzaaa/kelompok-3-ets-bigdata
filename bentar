@@ -47,10 +47,7 @@ venv/bin/python kafka/producer_api.py &
 venv/bin/python kafka/producer_rss.py &
 
 [A]
-docker exec kafka-broker kafka-console-consumer \
-  --topic saham-api \
-  --from-beginning \
-  --bootstrap-server localhost:9092
+docker exec kafka-broker kafka-console-consumer --topic saham-api --from-beginning --bootstrap-server localhost:9092
 
 [ ]
 docker exec namenode hdfs dfs -ls /data/saham/api/

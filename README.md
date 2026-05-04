@@ -144,8 +144,8 @@ python dashboard/app.py
 ## Screenshot
 <!-- Isi setelah demo berjalan -->
 - [ ] HDFS Web UI (localhost:9870)
-![alt text](image/namenode.png.png)
-![alt text](<image/Direktori HDFS.png>)
+![alt text](image/namenode.png)
+![alt text](<image/image.png>)
 
 - [ ] Kafka consumer output
 ![alt text](<image/docker image.png>)
