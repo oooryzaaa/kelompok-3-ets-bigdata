@@ -29,6 +29,7 @@ http://localhost:9870
 ######################
 [A]
 source venv/bin/activate
+
 docker compose -f docker-compose-hadoop.yml up -d
 docker compose -f docker-compose-kafka.yml up -d
 
