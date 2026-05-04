@@ -167,6 +167,71 @@ python dashboard/app.py
 7. Jalankan dashboard app.py
 8. Buka localhost:5000 → demo!
 
+
+## Bagian A: Infrastruktur Terdistribusi (Hadoop & Kafka)
+Penanggung Jawab: Oryza Qiara Ramadhani
+
+Bagian ini memuat konfigurasi fondasi Big Data untuk proyek SahamMeter. Seluruh environment dikontainerisasi menggunakan Docker untuk memastikan konsistensi antarpengembang dan mensimulasikan lingkungan cloud terdistribusi. Infrastruktur dibagi menjadi dua file Compose yang terpisah (hadoop dan kafka) untuk menerapkan prinsip High Availability dan Decoupled Architecture.
+
+### Arsitektur Container
+Infrastruktur ini menjalankan total 6 container yang terhubung dalam satu jaringan internal Docker:
+- Storage Layer (Hadoop Cluster):
+- namenode (HDFS Master) - Web UI: Port 9870
+- datanode (HDFS Worker)
+- resourcemanager (YARN Master)
+- nodemanager (YARN Worker)
+- Ingestion Layer (Kafka Cluster):
+- zookeeper (Cluster Manager)
+- kafka-broker (Message Broker) - Port 9092
+
+Catatan: Seluruh data di-hosting terpusat dan dapat diakses oleh anggota tim secara remote melalui IP Tailscale 100.74.49.87.
+
+### Struktur Data & Antrean
+Sistem ini telah dikonfigurasi dengan jalur data (Single Source of Truth) sebagai berikut:
+
+Kafka Topics:
+- saham-api (Untuk data harga saham real-time Yahoo Finance)
+- saham-rss (Untuk data teks berita dari portal RSS)
+
+HDFS Directories:
+- /data/saham/api/ (Penyimpanan mentah data API)
+- /data/saham/rss/ (Penyimpanan mentah data RSS)
+- /data/saham/hasil/ (Penyimpanan hasil analitik Apache Spark)
+
+### Cara Menjalankan Infrastruktur
+Pastikan Docker Desktop sudah berjalan di sistem (Windows/Mac/Linux). Untuk kemudahan operasional, kami telah menyediakan script otomatisasi menggunakan PowerShell.
+
+Cara Otomatis (Sangat Direkomendasikan):
+Buka terminal dan jalankan script berikut untuk mematikan container lama, menyalakan ulang secara sinkron, dan mengecek kesiapan Kafka:
+
+` .\restart.ps1 `
+
+Cara Manual:
+Jika ingin menyalakan cluster secara terpisah, gunakan perintah berikut:
+
+```
+# Menyalakan Hadoop Cluster
+docker compose -f docker-compose-hadoop.yml up -d
+
+# Menyalakan Kafka Cluster
+docker compose -f docker-compose-kafka.yml up -d
+```
+
+### Cara Verifikasi Sistem
+Setelah infrastruktur menyala, lakukan pengecekan berikut untuk memastikan sistem berjalan normal sebelum menjalankan Producer dan Consumer:
+
+1. Mengecek Status Kafka Topic
+
+```
+docker exec -it kafka-broker kafka-topics --list --bootstrap-server localhost:9092
+```
+(Ekspektasi output: Muncul daftar topic saham-api dan saham-rss)
+
+2. Mengecek Status HDFS (Storage)
+Buka browser dan akses HDFS Web UI melalui:
+` http://100.74.49.87:9870 `
+Arahkan ke menu Utilities > Browse the file system dan pastikan direktori /data/saham/ sudah terbentuk dengan baik.
+
 ## B - Producer API (Nadia)
 
 ### Deskripsi
