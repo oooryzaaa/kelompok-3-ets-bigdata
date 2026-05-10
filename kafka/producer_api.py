@@ -7,31 +7,29 @@ import json
 import time
 import random
 import logging
+import warnings
 import os
 from datetime import datetime
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
+import os
+os.environ["YFINANCE_NO_EXCEPTIONS"] = "1"
+
+# Suppress yfinance internal warnings
+warnings.filterwarnings("ignore")
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
+logging.getLogger("kafka").setLevel(logging.WARNING)
 
 # ============================================
 # 1. KONFIGURASI
 # ============================================
-KAFKA_BROKER = "100.74.49.87:9092"   # IP Oryza (Tailscale)
+KAFKA_BROKER = "100.74.49.87:9092"
 KAFKA_TOPIC  = "saham-api"
-INTERVAL     = 300  # 5 menit = 300 detik
+INTERVAL     = 60
 
-# 10 saham IDX blue-chip (upgrade dari 5 → 10)
 SAHAM_LIST = [
-    "BBCA.JK",  # Bank BCA
-    "BBRI.JK",  # Bank BRI
-    "TLKM.JK",  # Telkom
-    "ASII.JK",  # Astra International
-    "BMRI.JK",  # Bank Mandiri
-    # ---- 5 saham tambahan (Jose) ----
-    "UNVR.JK",  # Unilever Indonesia
-    "GOTO.JK",  # GoTo (Gojek Tokopedia)
-    "ICBP.JK",  # Indofood CBP
-    "INDF.JK",  # Indofood Sukses Makmur
-    "PGAS.JK",  # Perusahaan Gas Negara
+    "BBCA.JK", "BBRI.JK", "TLKM.JK", "ASII.JK", "BMRI.JK",
+    "UNVR.JK", "GOTO.JK", "ICBP.JK", "INDF.JK", "PGAS.JK",
 ]
 
 # ============================================
@@ -49,7 +47,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ============================================
-# 3. INISIALISASI PRODUCER (dengan retry)
+# 3. INISIALISASI PRODUCER
 # ============================================
 def buat_producer():
     while True:
@@ -75,7 +73,7 @@ producer = buat_producer()
 # ============================================
 def jam_bursa():
     now = datetime.now()
-    if now.weekday() >= 5:          # Sabtu / Minggu
+    if now.weekday() >= 5:
         return False
     if now.hour < 9 or now.hour > 15:
         return False
@@ -88,28 +86,32 @@ def jam_bursa():
 # ============================================
 def fetch_harga(ticker):
     try:
-        saham  = yf.Ticker(ticker)
-        info   = saham.fast_info
-        hist   = saham.history(period="1d", interval="1m")
+        saham = yf.Ticker(ticker)
+        hist  = saham.history(period="1d", interval="1m")
 
-        open_price = round(float(hist["Open"].iloc[0]),  2) if not hist.empty else None
-        high_price = round(float(hist["High"].max()),    2) if not hist.empty else None
-        low_price  = round(float(hist["Low"].min()),     2) if not hist.empty else None
-        last_price = round(float(info.last_price),       2)
+        if hist.empty:
+            log.warning(f"⚠️ {ticker}: data kosong, pakai simulator")
+            return None
+
+        last_price = round(float(hist["Close"].iloc[-1]), 2)
+        open_price = round(float(hist["Open"].iloc[0]),   2)
+        high_price = round(float(hist["High"].max()),     2)
+        low_price  = round(float(hist["Low"].min()),      2)
+        volume     = int(hist["Volume"].iloc[-1])
 
         change_pct = None
         if open_price and open_price != 0:
             change_pct = round((last_price - open_price) / open_price * 100, 4)
 
         return {
-            "ticker":      ticker.replace(".JK", ""),
-            "harga":       last_price,
-            "open":        open_price,
-            "high":        high_price,
-            "low":         low_price,
-            "change_pct":  change_pct,
-            "volume":      int(info.three_month_average_volume or 0),
-            "timestamp":   datetime.now().isoformat(),
+            "ticker":       ticker.replace(".JK", ""),
+            "harga":        last_price,
+            "open":         open_price,
+            "high":         high_price,
+            "low":          low_price,
+            "change_pct":   change_pct,
+            "volume":       volume,
+            "timestamp":    datetime.now().isoformat(),
             "is_simulated": False
         }
     except Exception as e:
@@ -119,7 +121,6 @@ def fetch_harga(ticker):
 # ============================================
 # 6. SIMULATOR (di luar jam bursa)
 # ============================================
-# Harga basis realistis IDX (Apr 2026 approx)
 harga_basis = {
     "BBCA": 9500,  "BBRI": 4800,  "TLKM": 3900,
     "ASII": 5200,  "BMRI": 6100,  "UNVR": 2100,
@@ -132,7 +133,7 @@ def simulate_harga(ticker):
     kode = ticker.replace(".JK", "")
     base = harga_sim.get(kode, 1000)
 
-    perubahan  = random.uniform(-0.015, 0.015)   # ±1.5%
+    perubahan  = random.uniform(-0.015, 0.015)
     harga_baru = round(base * (1 + perubahan), 2)
     harga_sim[kode] = harga_baru
 
@@ -163,7 +164,7 @@ def kirim_ke_kafka(data):
             key=data["ticker"],
             value=data
         )
-        future.get(timeout=10)   # tunggu konfirmasi
+        future.get(timeout=10)
     except KafkaError as e:
         log.error(f"❌ Gagal kirim {data['ticker']} ke Kafka: {e}")
 
@@ -177,7 +178,13 @@ while True:
     log.info(f"--- Polling [{mode}] {datetime.now().strftime('%H:%M:%S')} ---")
 
     for ticker in SAHAM_LIST:
-        data = fetch_harga(ticker) if jam_bursa() else simulate_harga(ticker)
+        # Langsung simulator kalau di luar jam bursa
+        if jam_bursa():
+            data = fetch_harga(ticker)
+            if data is None:
+                data = simulate_harga(ticker)
+        else:
+            data = simulate_harga(ticker)
 
         if data:
             kirim_ke_kafka(data)

@@ -2,233 +2,241 @@
   "metadata": {
     "project": "SahamMeter",
     "kelompok": 3,
-    "generated_at": "2026-05-03T14:53:06.366199",
-    "spark_version": "3.5.1",
+    "generated_at": "2026-05-04T15:22:28.724064",
+    "spark_version": "4.1.1",
     "saham_dari_hdfs": true,
     "berita_dari_hdfs": true,
     "hdfs_base": "hdfs://100.74.49.87:8020"
   },
   "analisis_1_return": [
     {
-      "ticker": "INDF",
-      "harga_awal": 7130.67,
-      "harga_terkini": 7304.04,
-      "harga_tertinggi": 7336.56,
-      "harga_terendah": 7060.46,
-      "total_volume": 24435923,
-      "return_pct": 2.4313,
+      "ticker": "PGAS",
+      "harga_awal": 1440.79,
+      "harga_terkini": 1895.0,
+      "harga_tertinggi": 1940.0,
+      "harga_terendah": 1402.82,
+      "total_volume": 3317620431,
+      "return_pct": 31.5251,
       "status": "NAIK"
     },
     {
       "ticker": "ASII",
-      "harga_awal": 5148.15,
-      "harga_terkini": 5251.12,
-      "harga_tertinggi": 5275.36,
+      "harga_awal": 5200.31,
+      "harga_terkini": 6100.0,
+      "harga_tertinggi": 6100.0,
       "harga_terendah": 5099.13,
-      "total_volume": 24583782,
-      "return_pct": 2.0001,
+      "total_volume": 2730171930,
+      "return_pct": 17.3007,
       "status": "NAIK"
     },
     {
-      "ticker": "ICBP",
-      "harga_awal": 11545.97,
-      "harga_terkini": 11655.09,
-      "harga_tertinggi": 11819.64,
-      "harga_terendah": 11293.8,
-      "total_volume": 19026414,
-      "return_pct": 0.9451,
-      "status": "NAIK"
-    },
-    {
-      "ticker": "TLKM",
-      "harga_awal": 3873.91,
-      "harga_terkini": 3895.08,
-      "harga_tertinggi": 3962.62,
-      "harga_terendah": 3812.55,
-      "total_volume": 32603401,
-      "return_pct": 0.5465,
-      "status": "NAIK"
-    },
-    {
-      "ticker": "GOTO",
-      "harga_awal": 87.74,
-      "harga_terkini": 87.98,
-      "harga_tertinggi": 89.08,
-      "harga_terendah": 86.81,
-      "total_volume": 24172205,
-      "return_pct": 0.2735,
-      "status": "NAIK"
-    },
-    {
-      "ticker": "BMRI",
-      "harga_awal": 6143.93,
-      "harga_terkini": 6133.44,
-      "harga_tertinggi": 6168.77,
-      "harga_terendah": 6031.79,
-      "total_volume": 28199297,
-      "return_pct": -0.1707,
+      "ticker": "INDF",
+      "harga_awal": 7243.99,
+      "harga_terkini": 6975.0,
+      "harga_tertinggi": 7374.89,
+      "harga_terendah": 6850.0,
+      "total_volume": 1491133512,
+      "return_pct": -3.7133,
       "status": "TURUN"
     },
     {
       "ticker": "UNVR",
-      "harga_awal": 2104.94,
-      "harga_terkini": 2096.02,
-      "harga_tertinggi": 2162.11,
-      "harga_terendah": 2064.34,
-      "total_volume": 24791960,
-      "return_pct": -0.4238,
+      "harga_awal": 2086.4,
+      "harga_terkini": 1560.0,
+      "harga_tertinggi": 2189.62,
+      "harga_terendah": 1550.0,
+      "total_volume": 1855584224,
+      "return_pct": -25.2301,
       "status": "TURUN"
     },
     {
-      "ticker": "PGAS",
-      "harga_awal": 1461.23,
-      "harga_terkini": 1448.01,
-      "harga_tertinggi": 1503.68,
-      "harga_terendah": 1433.88,
-      "total_volume": 34390053,
-      "return_pct": -0.9047,
+      "ticker": "TLKM",
+      "harga_awal": 3880.83,
+      "harga_terkini": 2870.0,
+      "harga_tertinggi": 3995.28,
+      "harga_terendah": 2840.0,
+      "total_volume": 7586764661,
+      "return_pct": -26.0467,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "BMRI",
+      "harga_awal": 6048.25,
+      "harga_terkini": 4420.0,
+      "harga_tertinggi": 6204.06,
+      "harga_terendah": 4410.0,
+      "total_volume": 10504453160,
+      "return_pct": -26.921,
       "status": "TURUN"
     },
     {
       "ticker": "BBRI",
-      "harga_awal": 4809.24,
-      "harga_terkini": 4758.6,
-      "harga_tertinggi": 4834.18,
-      "harga_terendah": 4728.82,
-      "total_volume": 20855132,
-      "return_pct": -1.053,
+      "harga_awal": 4774.41,
+      "harga_terkini": 3030.0,
+      "harga_tertinggi": 4924.91,
+      "harga_terendah": 3000.0,
+      "total_volume": 14960384468,
+      "return_pct": -36.5367,
       "status": "TURUN"
     },
     {
       "ticker": "BBCA",
-      "harga_awal": 9588.45,
-      "harga_terkini": 9415.75,
-      "harga_tertinggi": 9604.1,
-      "harga_terendah": 9252.17,
-      "total_volume": 25166253,
-      "return_pct": -1.8011,
+      "harga_awal": 9568.08,
+      "harga_terkini": 5900.0,
+      "harga_tertinggi": 9902.5,
+      "harga_terendah": 5800.0,
+      "total_volume": 10470307136,
+      "return_pct": -38.3366,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "ICBP",
+      "harga_awal": 11386.39,
+      "harga_terkini": 6775.0,
+      "harga_tertinggi": 11834.69,
+      "harga_terendah": 6675.0,
+      "total_volume": 563273899,
+      "return_pct": -40.4991,
+      "status": "TURUN"
+    },
+    {
+      "ticker": "GOTO",
+      "harga_awal": 88.54,
+      "harga_terkini": 51.0,
+      "harga_tertinggi": 89.69,
+      "harga_terendah": 50.0,
+      "total_volume": 232656787186,
+      "return_pct": -42.3989,
       "status": "TURUN"
     }
   ],
   "analisis_2_volatilitas": [
     {
-      "ticker": "PGAS",
-      "stddev_harga": 27.0451,
-      "rata_rata_harga": 1461.414,
-      "high": 1503.68,
-      "low": 1433.88,
-      "jumlah_snapshot": 5,
-      "range_intraday": 69.8,
-      "cv_pct": 1.8506,
-      "level_volatilitas": "SEDANG"
+      "ticker": "GOTO",
+      "stddev_harga": 17.573,
+      "rata_rata_harga": 63.2453,
+      "high": 89.69,
+      "low": 50.0,
+      "jumlah_snapshot": 96,
+      "range_intraday": 39.69,
+      "cv_pct": 27.7855,
+      "level_volatilitas": "TINGGI"
     },
     {
       "ticker": "ICBP",
-      "stddev_harga": 165.5878,
-      "rata_rata_harga": 11586.426,
-      "high": 11819.64,
-      "low": 11293.8,
-      "jumlah_snapshot": 5,
-      "range_intraday": 525.84,
-      "cv_pct": 1.4292,
-      "level_volatilitas": "SEDANG"
-    },
-    {
-      "ticker": "INDF",
-      "stddev_harga": 94.3632,
-      "rata_rata_harga": 7180.122,
-      "high": 7336.56,
-      "low": 7060.46,
-      "jumlah_snapshot": 5,
-      "range_intraday": 276.1,
-      "cv_pct": 1.3142,
-      "level_volatilitas": "SEDANG"
-    },
-    {
-      "ticker": "UNVR",
-      "stddev_harga": 26.3422,
-      "rata_rata_harga": 2108.47,
-      "high": 2162.11,
-      "low": 2064.34,
-      "jumlah_snapshot": 5,
-      "range_intraday": 97.77,
-      "cv_pct": 1.2494,
-      "level_volatilitas": "SEDANG"
-    },
-    {
-      "ticker": "TLKM",
-      "stddev_harga": 45.09,
-      "rata_rata_harga": 3891.708,
-      "high": 3962.62,
-      "low": 3812.55,
-      "jumlah_snapshot": 5,
-      "range_intraday": 150.07,
-      "cv_pct": 1.1586,
-      "level_volatilitas": "SEDANG"
+      "stddev_harga": 2218.5083,
+      "rata_rata_harga": 8300.7885,
+      "high": 11834.69,
+      "low": 6675.0,
+      "jumlah_snapshot": 95,
+      "range_intraday": 5159.69,
+      "cv_pct": 26.7265,
+      "level_volatilitas": "TINGGI"
     },
     {
       "ticker": "BBCA",
-      "stddev_harga": 99.9134,
-      "rata_rata_harga": 9409.992,
-      "high": 9604.1,
-      "low": 9252.17,
-      "jumlah_snapshot": 5,
-      "range_intraday": 351.93,
-      "cv_pct": 1.0618,
-      "level_volatilitas": "SEDANG"
+      "stddev_harga": 1718.9774,
+      "rata_rata_harga": 7116.1903,
+      "high": 9902.5,
+      "low": 5800.0,
+      "jumlah_snapshot": 97,
+      "range_intraday": 4102.5,
+      "cv_pct": 24.1559,
+      "level_volatilitas": "TINGGI"
     },
     {
       "ticker": "BBRI",
-      "stddev_harga": 25.6165,
-      "rata_rata_harga": 4777.056,
-      "high": 4834.18,
-      "low": 4728.82,
-      "jumlah_snapshot": 5,
-      "range_intraday": 105.36,
-      "cv_pct": 0.5362,
-      "level_volatilitas": "SEDANG"
+      "stddev_harga": 855.0359,
+      "rata_rata_harga": 3638.0862,
+      "high": 4924.91,
+      "low": 3000.0,
+      "jumlah_snapshot": 97,
+      "range_intraday": 1924.91,
+      "cv_pct": 23.5024,
+      "level_volatilitas": "TINGGI"
     },
     {
       "ticker": "BMRI",
-      "stddev_harga": 30.3429,
-      "rata_rata_harga": 6088.966,
-      "high": 6168.77,
-      "low": 6031.79,
-      "jumlah_snapshot": 5,
-      "range_intraday": 136.98,
-      "cv_pct": 0.4983,
-      "level_volatilitas": "RENDAH"
+      "stddev_harga": 779.2128,
+      "rata_rata_harga": 4992.5891,
+      "high": 6204.06,
+      "low": 4410.0,
+      "jumlah_snapshot": 98,
+      "range_intraday": 1794.06,
+      "cv_pct": 15.6074,
+      "level_volatilitas": "TINGGI"
     },
     {
-      "ticker": "GOTO",
-      "stddev_harga": 0.3272,
-      "rata_rata_harga": 88.054,
-      "high": 89.08,
-      "low": 86.81,
-      "jumlah_snapshot": 5,
-      "range_intraday": 2.27,
-      "cv_pct": 0.3716,
-      "level_volatilitas": "RENDAH"
+      "ticker": "UNVR",
+      "stddev_harga": 263.3074,
+      "rata_rata_harga": 1744.7197,
+      "high": 2189.62,
+      "low": 1550.0,
+      "jumlah_snapshot": 96,
+      "range_intraday": 639.62,
+      "cv_pct": 15.0917,
+      "level_volatilitas": "TINGGI"
+    },
+    {
+      "ticker": "TLKM",
+      "stddev_harga": 480.5451,
+      "rata_rata_harga": 3205.4345,
+      "high": 3995.28,
+      "low": 2840.0,
+      "jumlah_snapshot": 97,
+      "range_intraday": 1155.28,
+      "cv_pct": 14.9916,
+      "level_volatilitas": "TINGGI"
+    },
+    {
+      "ticker": "PGAS",
+      "stddev_harga": 212.6173,
+      "rata_rata_harga": 1751.344,
+      "high": 1940.0,
+      "low": 1402.82,
+      "jumlah_snapshot": 95,
+      "range_intraday": 537.18,
+      "cv_pct": 12.1402,
+      "level_volatilitas": "TINGGI"
     },
     {
       "ticker": "ASII",
-      "stddev_harga": 14.3089,
-      "rata_rata_harga": 5235.974,
-      "high": 5275.36,
+      "stddev_harga": 416.0359,
+      "rata_rata_harga": 5784.4545,
+      "high": 6100.0,
       "low": 5099.13,
-      "jumlah_snapshot": 5,
-      "range_intraday": 176.23,
-      "cv_pct": 0.2733,
-      "level_volatilitas": "RENDAH"
+      "jumlah_snapshot": 97,
+      "range_intraday": 1000.87,
+      "cv_pct": 7.1923,
+      "level_volatilitas": "TINGGI"
+    },
+    {
+      "ticker": "INDF",
+      "stddev_harga": 109.032,
+      "rata_rata_harga": 7055.3015,
+      "high": 7374.89,
+      "low": 6850.0,
+      "jumlah_snapshot": 95,
+      "range_intraday": 524.89,
+      "cv_pct": 1.5454,
+      "level_volatilitas": "SEDANG"
     }
   ],
   "analisis_3_frekuensi_berita": [
     {
       "perusahaan": "Mandiri",
-      "jumlah_sebutan": 3,
+      "jumlah_sebutan": 12,
       "keywords": [
         "Mandiri",
         "Bank Mandiri"
+      ]
+    },
+    {
+      "perusahaan": "BRI",
+      "jumlah_sebutan": 8,
+      "keywords": [
+        "BRI",
+        "Bank Rakyat Indonesia"
       ]
     },
     {
@@ -237,14 +245,6 @@
       "keywords": [
         "BCA",
         "Bank Central Asia"
-      ]
-    },
-    {
-      "perusahaan": "BRI",
-      "jumlah_sebutan": 0,
-      "keywords": [
-        "BRI",
-        "Bank Rakyat Indonesia"
       ]
     },
     {
