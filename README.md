@@ -145,17 +145,17 @@ python dashboard/app.py
 <!-- Isi setelah demo berjalan -->
 - [ ] HDFS Web UI (localhost:9870)
 ![alt text](image/namenode.png)
-![alt text](<image/image.png>)
 
 - [ ] Kafka consumer output
 ![alt text](<image/docker image.png>)
 ![alt text](<image/kafka topics.png>)
+![alt text](image/bigdata1.png)
 
 - [ ] Dashboard berjalan
-
-## Tantangan & Refleksi
-- **Tantangan**: 
-- **Solusi**: 
+![alt text](image/dashboard.png)
+![alt text](image/RSS_Berita.png)
+![alt text](<image/Grafik Saham.png>)
+![alt text](<image/Analisis Spark.png>)
 
 ## Urutan Menjalankan Saat Demo
 1. Buka Docker Desktop
@@ -594,3 +594,104 @@ docker exec namenode hdfs dfs -cat /data/saham/api/2026-04-30_01-48-37.json | he
 ### Consumer — Data Berhasil Masuk ke HDFS
 
 ![Verifikasi file JSON di HDFS dan live_api.json lokal berhasil dibuat](image/bigdata4.png)
+
+## Bagian D: Analisis Saham dengan Apache Spark 
+
+### Deskripsi
+Bagian ini bertanggung jawab untuk memproses dan menganalisis data mentah (*raw data*) yang telah disimpan di HDFS menggunakan Apache Spark. Proses analitik dilakukan secara *batch processing* melalui *Jupyter Notebook* untuk menghasilkan wawasan (*insights*) terkait pergerakan harga saham dan sentimen berita pasar modal. Hasil analisis kemudian diekspor menjadi file JSON agar dapat divisualisasikan oleh Dashboard.
+
+### Lokasi File
+| File | Keterangan |
+|------|------------|
+| `spark/analysis.ipynb` | Notebook utama yang berisi logika transformasi dan analisis data |
+| `dashboard/data/spark_results.json` | File output hasil analitik yang akan dibaca oleh frontend |
+
+### Dependensi
+```bash
+pip install pyspark pandas findspark
+jupyter notebook spark/analysis.ipynb
+./spark/run_auto_analysis.sh
+```
+
+### 3 Metrik Analisis Utama
+Apache Spark membaca rentetan data JSON dari direktori /data/saham/api/ dan /data/saham/rss/ di HDFS untuk melakukan tiga perhitungan utama secara simultan:
+
+#### Analisis 1: Pergerakan & Return Saham
+
+- Tujuan: Mengetahui emiten mana yang memberikan persentase perubahan harga tertinggi (Cuan) selama sesi berjalan.
+
+- Metode: Spark mengagregasi data berdasarkan ticker, membandingkan harga pembukaan awal (harga_awal) dengan harga penutupan terakhir (harga_terkini). Hasil return_pct kemudian dikategorikan menjadi status NAIK, TURUN, atau FLAT.
+
+#### Analisis 2: Tingkat Volatilitas & Risiko Harga
+
+- Tujuan: Mengukur seberapa liar pergerakan harga saham untuk menilai profil risiko setiap emiten.
+
+- Metode: Menggunakan perhitungan Standar Deviasi (stddev_harga) terhadap seluruh titik harga yang masuk. Angka tersebut lalu dibagi dengan rata-rata harga untuk mendapatkan Coefficient of Variation (cv_pct). Saham akan dilabeli volatilitas TINGGI (> 2.0%), SEDANG (> 0.5%), atau RENDAH.
+
+#### Analisis 3: Frekuensi Penyebutan Berita (Media Exposure)
+
+- Tujuan: Mengetahui emiten blue-chip mana yang sedang ramai diperbincangkan oleh media nasional.
+
+- Metode: Spark memindai kolom judul dari seluruh arsip berita RSS menggunakan Regex. Sistem menghitung jumlah sebutan (mention counts) untuk 5 perusahaan target: BCA, BRI, Telkom, Astra, dan Mandiri berdasarkan keywords yang sudah ditentukan.
+
+### Cara Menjalankan
+Pastikan infrastruktur Hadoop (Namenode & Datanode) sudah berjalan, serta Producer dan Consumer telah aktif menyuntikkan data ke HDFS.
+
+- Buka terminal (Bash/WSL) dan arahkan ke direktori root proyek saham-meter/.
+- Jalankan skrip analisis otomatis (pastikan environment Python sudah aktif):
+
+``` Bash
+./spark/run_auto_analysis.sh
+``` 
+Skrip akan berjalan tanpa henti dan mencetak log Selesai analisis & simpan setiap 5 detik. Output yang Diharapkan
+
+```` Bash
+File dashboard/data/spark_results.json akan terus diperbarui secara real-time.
+````
+
+Spark juga akan mem-backup hasil analisis (return, volatilitas, frekuensi) ke HDFS di dalam direktori /data/saham/hasil/ yang diberi label timestamp unik.
+
+## Bagian E: Dashboard
+
+Bagian ini adalah ujung tombak interaksi pengguna (End-User Interface). Berupa aplikasi web interaktif yang bertugas memvisualisasikan seluruh aliran data Big Data—mulai dari harga saham live, berita real-time, hingga hasil komputasi analitik Apache Spark. Aplikasi ini dibangun menggunakan antarmuka modern yang secara otomatis memperbarui data (auto-refresh) setiap 5 detik tanpa perlu memuat ulang (reload) halaman.
+
+### Lokasi File
+
+| File | Keterangan |
+|-----------|------------------|
+| `dashboard/app.py` | `Backend menggunakan Flask bertugas mengekspos endpoint API dari pembacaan file JSON lokal.` |
+| `dashboard/templates/index.html` | `Frontend utama yang memuat UI/UX, logika JavaScript, dan rendering grafik.` |
+| `dashboard/data/*.json` | `Direktori cache data hasil sinkronisasi dari HDFS yang menjadi sumber bacaan Flask.` |
+
+### Dependensi
+``` Bash
+pip install flask
+```
+
+### Fitur Utama Dashboard
+
+1. Ticker Tape & Market Strip: Pita berjalan (scrolling text) di bagian atas yang menampilkan ringkasan harga saham live dan Top Mover (saham dengan pergerakan paling ekstrem).
+
+2. Dynamic UI & Dark Mode: Antarmuka responsif yang dapat diakses melalui laptop maupun smartphone, dilengkapi tombol switch Dark/Light Mode yang tersimpan di Local Storage.
+
+3. Live Market & History Charts: Tabel harga saham yang terhubung langsung dengan Kafka/HDFS, serta grafik garis (line chart) untuk melacak rekam jejak harga (historical prices) menggunakan Chart.js.
+
+4. News Radar: Menampilkan agregasi 10 berita pasar modal terbaru secara real-time, lengkap dengan badge warna untuk hasil deteksi sentimen (Positif/Negatif/Netral).
+
+5. Spark Insights: Merender tabel hasil analitik (Return & Volatilitas) serta grafik batang (bar chart) Frekuensi Sebutan Berita hasil dari batch processing Apache Spark.
+
+### Cara Menjalankan
+Pastikan komponen Consumer dan Spark sudah berjalan dan berhasil menciptakan file JSON di dalam folder dashboard/data/ sebelum menyalakan dashboard ini.
+
+- Buka terminal baru dan jalankan script Flask:
+``` bash 
+python dashboard/app.py
+```
+
+- Buka browser (Chrome/Edge/Safari/Firefox) dan akses alamat:
+``` bash
+http://localhost:5000 atau http://127.0.0.1:5000
+``` 
+### Alur Kerja (Bagaimana Ini Bekerja?)
+
+Aplikasi Flask tidak melakukan komputasi berat. Ia membaca file live_api.json, live_rss.json, dan spark_results.json dengan pengamanan try-except. JavaScript di sisi frontend akan melakukan fetching ke /api/data setiap 5.000 milidetik, mendistribusikan data tersebut ke tabel yang sesuai, dan me-redraw canvas Chart.js secara dinamis.

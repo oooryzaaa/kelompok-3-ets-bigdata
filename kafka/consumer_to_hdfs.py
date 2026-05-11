@@ -1,159 +1,136 @@
-import feedparser
 import json
-import time
-import hashlib
 import os
+import threading
+import time
 from datetime import datetime
-from kafka import KafkaProducer
+from kafka import KafkaConsumer
+from hdfs import InsecureClient
 
 # ============================================================
 # KONFIGURASI
 # ============================================================
 
-KAFKA_BROKER = "100.74.49.87:9092"
-KAFKA_TOPIC  = "saham-rss"
-INTERVAL     = 60  # polling setiap 1 menit (60 detik)
-MAKS_PER_SOURCE = 10  # maksimal artikel per sumber RSS
+KAFKA_BROKER   = "100.74.49.87:9092"
+TOPIC_API      = "saham-api"
+TOPIC_RSS      = "saham-rss"
+INTERVAL       = 60
 
-# Sesuai dengan Topik 4: SahamMeter (utama: bisnis.com, backup: cnn/kompas/tempo)
-RSS_SOURCES = [
-    "https://rss.bisnis.com/feed/rss2/financial-market", 
-    "https://www.cnnindonesia.com/ekonomi/rss",
-    "https://rss.kompas.com/feed/kompas.com/money",
-    "https://rss.tempo.co/nasional",
-]
+HDFS_URL       = "http://100.74.49.87:9870"
+HDFS_USER      = "root"
+HDFS_PATH_API  = "/data/saham/api"
+HDFS_PATH_RSS  = "/data/saham/rss"
 
-# Path disesuaikan agar bisa jalan dari root folder
-SENT_IDS_FILE = "kafka/sent_ids.txt"
+LOCAL_API_JSON = "dashboard/data/live_api.json"
+LOCAL_RSS_JSON = "dashboard/data/live_rss.json"
 
-# ============================================================
-# INISIALISASI
-# ============================================================
+os.makedirs("dashboard/data", exist_ok=True)
 
-# Error handling jika Kafka belum nyala
-try:
-    producer = KafkaProducer(
-        bootstrap_servers=KAFKA_BROKER,
-        enable_idempotence=True,
-        acks="all",
-        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        key_serializer=lambda k: k.encode("utf-8"),
-    )
-    print(f"✅ Berhasil terhubung ke Kafka: {KAFKA_BROKER}")
-except Exception as e:
-    print(f"❌ Gagal terhubung ke Kafka. Pastikan Kafka sudah menyala!")
-    print(f"Error: {e}")
-    exit(1)
-
-def load_sent_ids():
-    # Buat foldernya jika belum ada
-    os.makedirs(os.path.dirname(SENT_IDS_FILE), exist_ok=True)
-    if not os.path.exists(SENT_IDS_FILE):
-        return set()
-    with open(SENT_IDS_FILE, "r") as f:
-        return set(line.strip() for line in f if line.strip())
-
-def save_sent_id(article_id):
-    with open(SENT_IDS_FILE, "a") as f:
-        f.write(article_id + "\n")
-
-def make_id(url):
-    return hashlib.md5(url.encode()).hexdigest()[:8]
+hdfs_client = InsecureClient(HDFS_URL, user=HDFS_USER)
 
 # ============================================================
-# DETEKSI SENTIMEN SEDERHANA
+# BUFFER
 # ============================================================
 
-KATA_POSITIF = ["naik", "bullish", "untung", "rekor", "tumbuh", "profit", "meningkat", "optimis", "lonjakan", "cuan", "hijau"]
-KATA_NEGATIF = ["turun", "bearish", "rugi", "anjlok", "merosot", "koreksi", "jatuh", "pesimis", "jeblok", "merah", "ambruk"]
-
-def deteksi_sentimen(judul):
-    judul_lower = judul.lower()
-    for kata in KATA_POSITIF:
-        if kata in judul_lower:
-            return "positif"
-    for kata in KATA_NEGATIF:
-        if kata in judul_lower:
-            return "negatif"
-    return "netral"
+buffer_api = []
+buffer_rss = []
+lock_api   = threading.Lock()
+lock_rss   = threading.Lock()
 
 # ============================================================
-# FETCH DAN KIRIM RSS
+# SIMPAN KE HDFS
 # ============================================================
 
-def fetch_dan_kirim(sent_ids):
-    total_terkirim = 0
+def simpan_ke_hdfs(data_snapshot, hdfs_path, label):
+    if not data_snapshot:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] {label}: buffer kosong, skip.")
+        return
 
-    for url in RSS_SOURCES:
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nama_file = f"{timestamp}.json"
+    path_hdfs = f"{hdfs_path}/{nama_file}"
+    konten    = json.dumps(data_snapshot, ensure_ascii=False, indent=2)
+
+    try:
+        with hdfs_client.write(path_hdfs, encoding="utf-8", overwrite=True) as f:
+            f.write(konten)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] {label}: {len(data_snapshot)} record -> HDFS {path_hdfs}")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Gagal simpan HDFS {label}: {e}")
+
+# ============================================================
+# UPDATE FILE LOKAL UNTUK DASHBOARD
+# ============================================================
+
+def update_lokal(data_snapshot, path_json):
+    if not data_snapshot:
+        return
+        
+    existing_data = []
+    
+    if os.path.exists(path_json):
         try:
-            feed = feedparser.parse(url)
-            terkirim_source = 0
+            with open(path_json, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            existing_data = []
 
-            # Cek jika feed gagal dimuat
-            if hasattr(feed, 'status') and feed.status not in [200, 301, 302]:
-                print(f"⚠️ Peringatan: Gagal mengambil RSS dari {url} (Status: {feed.status})")
-                continue
+    combined_data = existing_data + data_snapshot
 
-            for entry in feed.entries:
-                if terkirim_source >= MAKS_PER_SOURCE:
-                    break
+    with open(path_json, "w", encoding="utf-8") as f:
+        json.dump(combined_data[-50:], f, ensure_ascii=False, indent=2)
+        
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Lokal diupdate: {path_json} (Total render: {len(combined_data[-50:])} baris)")
 
-                article_url = getattr(entry, "link", "")
-                article_id  = make_id(article_url)
+# ============================================================
+# CONSUMER THREAD
+# ============================================================
 
-                if article_id in sent_ids:
-                    continue
+def consume_topic(topic, buffer, lock):
+    consumer = KafkaConsumer(
+        topic,
+        bootstrap_servers=KAFKA_BROKER,
+        group_id=f"consumer-{topic}-v4", 
+        auto_offset_reset="earliest",
+        value_deserializer=lambda v: json.loads(v.decode("utf-8")),
+        consumer_timeout_ms=1000,
+    )
 
-                judul     = getattr(entry, "title", "Tanpa Judul")
-                ringkasan = getattr(entry, "summary", "")
-                waktu     = getattr(entry, "published", datetime.now().isoformat())
-                
-                # Ambil nama sumber berita (jika tidak ada fallback ke URL aslinya)
-                sumber    = getattr(feed.feed, "title", url.split("/")[2]) 
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Consumer {topic} siap mendengarkan aliran data.")
 
-                data = {
-                    "id"          : article_id,
-                    "judul"       : judul,
-                    "url"         : article_url,
-                    "ringkasan"   : ringkasan[:300], # Potong max 300 karakter
-                    "sumber"      : sumber,
-                    "sentimen"    : deteksi_sentimen(judul),
-                    "waktu_terbit": waktu,
-                    "timestamp"   : datetime.now().isoformat(),
-                }
-
-                # Kirim ke Kafka
-                producer.send(KAFKA_TOPIC, key=article_id, value=data)
-                
-                # Simpan ke cache lokal agar tidak dikirim ganda di menit berikutnya
-                sent_ids.add(article_id)
-                save_sent_id(article_id)
-                
-                total_terkirim += 1
-                terkirim_source += 1
-
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] 📰 Terkirim: {judul[:60]}...")
-
+    while True:
+        try:
+            for message in consumer:
+                with lock:
+                    buffer.append(message.value)
         except Exception as e:
-            print(f"❌ Error saat mengambil RSS dari {url}: {e}")
-
-    producer.flush() # Pastikan semua data benar-benar terkirim sebelum lanjut
-    return total_terkirim
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Error {topic}: {e}")
+        time.sleep(1)
 
 # ============================================================
 # MAIN LOOP
 # ============================================================
 
-print("\n🚀 Producer RSS siap. Memulai penarikan data...")
+print("🚀 Consumer to HDFS siap. Mulai membaca data dari Kafka...")
+
+thread_api = threading.Thread(target=consume_topic, args=(TOPIC_API, buffer_api, lock_api), daemon=True)
+thread_rss = threading.Thread(target=consume_topic, args=(TOPIC_RSS, buffer_rss, lock_rss), daemon=True)
+
+thread_api.start()
+thread_rss.start()
 
 while True:
-    sent_ids = load_sent_ids()
-    jumlah   = fetch_dan_kirim(sent_ids)
-    
-    if jumlah > 0:
-        print(f"✅ [{datetime.now().strftime('%H:%M:%S')}] {jumlah} artikel baru berhasil dikirim ke Kafka.")
-    else:
-        print(f"💤 [{datetime.now().strftime('%H:%M:%S')}] Tidak ada berita baru. Standby...")
-        
-    print(f"⏳ Menunggu {INTERVAL} detik untuk penarikan berikutnya...\n")
     time.sleep(INTERVAL)
+
+    with lock_api:
+        snapshot_api = buffer_api.copy()
+        buffer_api.clear()
+
+    with lock_rss:
+        snapshot_rss = buffer_rss.copy()
+        buffer_rss.clear()
+
+    simpan_ke_hdfs(snapshot_api, HDFS_PATH_API, "API Saham")
+    simpan_ke_hdfs(snapshot_rss, HDFS_PATH_RSS, "RSS Berita")
+
+    update_lokal(snapshot_api, LOCAL_API_JSON)
+    update_lokal(snapshot_rss, LOCAL_RSS_JSON)

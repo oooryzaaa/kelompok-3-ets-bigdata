@@ -32,6 +32,9 @@
       --hero-muted: #d7e4f5;
       --shadow: 0 22px 54px rgba(8, 21, 43, 0.14);
       --luxury-line: rgba(200, 164, 77, 0.28);
+      --row-up-bg: rgba(220, 252, 231, 0.6);
+      --row-down-bg: rgba(254, 228, 226, 0.58);
+      --th-color: #475467;
     }
 
     body.dark-mode {
@@ -57,6 +60,9 @@
       --hero-muted: #b7c8e1;
       --shadow: 0 24px 58px rgba(0, 0, 0, 0.34);
       --luxury-line: rgba(215, 183, 96, 0.32);
+      --row-up-bg: rgba(6, 118, 71, 0.2);
+      --row-down-bg: rgba(180, 35, 24, 0.2);
+      --th-color: #9fb0c8;
     }
 
     * {
@@ -354,7 +360,8 @@
       grid-template-columns: minmax(0, 2fr) minmax(340px, 0.9fr);
       grid-template-areas:
         "live news"
-        "spark news";
+        "history news"
+        "spark spark";
       gap: 16px;
       align-items: start;
     }
@@ -371,14 +378,16 @@
       grid-area: live;
     }
 
+    .panel-history {
+      grid-area: history;
+    }
+
     .panel-spark {
       grid-area: spark;
     }
 
     .panel-news {
       grid-area: news;
-      position: sticky;
-      top: 16px;
     }
 
     .panel-header {
@@ -479,7 +488,7 @@
 
     th {
       background: var(--surface-soft);
-      color: #475467;
+      color: var(--th-color);
       font-size: 0.76rem;
       font-weight: 900;
       text-transform: uppercase;
@@ -499,11 +508,11 @@
     }
 
     .row-up {
-      background: rgba(220, 252, 231, 0.6);
+      background: var(--row-up-bg);
     }
 
     .row-down {
-      background: rgba(254, 228, 226, 0.58);
+      background: var(--row-down-bg);
     }
 
     .number {
@@ -628,6 +637,7 @@
         grid-template-columns: 1fr;
         grid-template-areas:
           "live"
+          "history"
           "spark"
           "news";
       }
@@ -719,7 +729,7 @@
       <div class="hero-actions">
         <div class="hero-controls">
           <div class="refresh-box">
-            Auto refresh tiap 30 detik
+            Auto refresh tiap 5 detik
             <strong>Last updated: <span id="lastUpdated">-</span></strong>
           </div>
           <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
@@ -779,6 +789,31 @@
         </div>
       </section>
 
+      <section class="panel panel-history">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon">H</div>
+            <div>
+              <h2>Data Historis</h2>
+              <span>Pergerakan harga saham sebelumnya</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-card">
+            <h3 class="section-title">Grafik Historis Saham Top</h3>
+            <div id="historyChartEmpty" class="empty">Belum ada data historis yang terkumpul</div>
+            <div class="chart-wrap">
+              <canvas id="historyChart" hidden></canvas>
+            </div>
+          </div>
+          <div style="margin-top: 16px;">
+            <h3 class="section-title">Tabel Data Historis (Replaced from Live)</h3>
+            <div id="historyTable"></div>
+          </div>
+        </div>
+      </section>
+
       <aside class="panel panel-news">
         <div class="panel-header">
           <div class="panel-title">
@@ -833,6 +868,8 @@
 
   <script>
     let newsFrequencyChart = null;
+    let historyChart = null;
+    let historicalDataMap = {};
 
     function applyTheme(theme) {
       const isDark = theme === "dark";
@@ -840,13 +877,25 @@
       document.getElementById("themeToggle").textContent = isDark ? "Light" : "Dark";
       localStorage.setItem("sahammeter-theme", theme);
 
+      const mutedColor = getComputedStyle(document.body).getPropertyValue("--muted").trim();
+
       if (newsFrequencyChart) {
-        const mutedColor = getComputedStyle(document.body).getPropertyValue("--muted").trim();
         newsFrequencyChart.options.scales.x.ticks = newsFrequencyChart.options.scales.x.ticks || {};
         newsFrequencyChart.options.scales.y.ticks = newsFrequencyChart.options.scales.y.ticks || {};
         newsFrequencyChart.options.scales.x.ticks.color = mutedColor;
         newsFrequencyChart.options.scales.y.ticks.color = mutedColor;
         newsFrequencyChart.update();
+      }
+
+      if (historyChart) {
+        historyChart.options.scales.x.ticks = historyChart.options.scales.x.ticks || {};
+        historyChart.options.scales.y.ticks = historyChart.options.scales.y.ticks || {};
+        historyChart.options.scales.x.ticks.color = mutedColor;
+        historyChart.options.scales.y.ticks.color = mutedColor;
+        if (historyChart.options.plugins && historyChart.options.plugins.legend && historyChart.options.plugins.legend.labels) {
+            historyChart.options.plugins.legend.labels.color = mutedColor;
+        }
+        historyChart.update();
       }
     }
 
@@ -945,8 +994,47 @@
       }).join("");
     }
 
-    function updateMarketMetrics(data) {
-      const liveRows = Array.isArray(data.live_api) ? data.live_api : [];
+    function processLiveData(rawLiveRows) {
+      if (!Array.isArray(rawLiveRows)) return { liveRows: [], historyRows: [] };
+
+      const sorted = [...rawLiveRows].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      historicalDataMap = {}; 
+      const latest = {};
+      const history = [];
+
+      for (const row of sorted) {
+        if (!row.ticker) continue;
+
+        if (latest[row.ticker]) {
+          const old = latest[row.ticker];
+          history.push(old); // Semua data yang tertimpa (double) masuk historis
+        }
+        latest[row.ticker] = row;
+
+        if (!historicalDataMap[row.ticker]) {
+           historicalDataMap[row.ticker] = [];
+        }
+        
+        const arr = historicalDataMap[row.ticker];
+        if (arr.length === 0 || arr[arr.length - 1].time !== row.timestamp) {
+            arr.push({ time: row.timestamp, price: row.harga });
+            // Batasi maksimal 30 poin historis per ticker agar grafik tidak terlalu rapat
+            if (arr.length > 30) {
+                arr.shift();
+            }
+        }
+      }
+
+      history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      return {
+        liveRows: Object.values(latest).sort((a, b) => b.volume - a.volume),
+        historyRows: history.slice(0, 50)
+      };
+    }
+
+    function updateMarketMetrics(data, liveRows) {
       const newsRows = Array.isArray(data.live_rss) ? data.live_rss : [];
       const spark = data.spark || {};
       const metadata = spark.metadata || {};
@@ -965,7 +1053,7 @@
       topMoverEl.className = topMover ? changeClass(topMover.change) : "";
     }
 
-    function renderReturnTable(rows) {
+  function renderReturnTable(rows) {
       if (!Array.isArray(rows) || rows.length === 0) {
         renderEmpty("returnTable");
         return;
@@ -983,6 +1071,7 @@
             <td class="number">${formatNumber(row.harga_terkini)}</td>
             <td class="number ${changeClass(row.return_pct)}">${formatNumber(row.return_pct)}%</td>
             <td><span class="${badgeClass(status)}">${status}</span></td>
+            <td>${formatDateTime(row.timestamp_terakhir)}</td>
           </tr>
         `;
       }).join("");
@@ -997,6 +1086,7 @@
                 <th class="number">Harga Terkini</th>
                 <th class="number">Return%</th>
                 <th>Status</th>
+                <th>Timestamp Spark</th>
               </tr>
             </thead>
             <tbody>${body}</tbody>
@@ -1017,6 +1107,7 @@
           <td class="number">${formatNumber(row.stddev_harga)}</td>
           <td class="number">${formatNumber(row.range_intraday)}</td>
           <td><span class="${badgeClass(row.level_volatilitas)}">${safeText(row.level_volatilitas)}</span></td>
+          <td>${formatDateTime(row.timestamp_terakhir)}</td>
         </tr>
       `).join("");
 
@@ -1029,6 +1120,7 @@
                 <th class="number">Stddev</th>
                 <th class="number">Range Intraday</th>
                 <th>Level</th>
+                <th>Timestamp Spark</th>
               </tr>
             </thead>
             <tbody>${body}</tbody>
@@ -1091,14 +1183,16 @@
                 display: false
               },
               ticks: {
-                color: getComputedStyle(document.body).getPropertyValue("--muted").trim()
+                color: getComputedStyle(document.body).getPropertyValue("--muted").trim(),
+                font: { size: 12, weight: 'bold' }
               }
             },
             y: {
               beginAtZero: true,
               ticks: {
                 precision: 0,
-                color: getComputedStyle(document.body).getPropertyValue("--muted").trim()
+                color: getComputedStyle(document.body).getPropertyValue("--muted").trim(),
+                font: { size: 11, weight: 'bold' }
               }
             }
           }
@@ -1127,6 +1221,7 @@
           <td class="number">${formatNumber(row.harga)}</td>
           <td class="number ${changeClass(row.change_pct)}">${formatNumber(row.change_pct)}%</td>
           <td class="number">${formatInteger(row.volume)}</td>
+          <td>${formatDateTime(row.timestamp)}</td>
         </tr>
       `).join("");
 
@@ -1139,12 +1234,135 @@
                 <th class="number">Harga Terkini</th>
                 <th class="number">Change%</th>
                 <th class="number">Volume</th>
+                <th>Timestamp</th>
               </tr>
             </thead>
             <tbody>${body}</tbody>
           </table>
         </div>
       `;
+    }
+
+    function renderHistoryTable(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        renderEmpty("historyTable");
+        return;
+      }
+      const body = rows.map((row) => `
+        <tr>
+          <td><strong>${safeText(row.ticker)}</strong></td>
+          <td class="number">${formatNumber(row.harga)}</td>
+          <td class="number ${changeClass(row.change_pct)}">${formatNumber(row.change_pct)}%</td>
+          <td>${formatDateTime(row.timestamp)}</td>
+        </tr>
+      `).join("");
+      document.getElementById("historyTable").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th class="number">Harga</th>
+                <th class="number">Change%</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderHistoryChart() {
+      const empty = document.getElementById("historyChartEmpty");
+      const canvas = document.getElementById("historyChart");
+      
+      const tickers = Object.keys(historicalDataMap);
+      if (tickers.length === 0) {
+        empty.hidden = false;
+        canvas.hidden = true;
+        if (historyChart) {
+          historyChart.destroy();
+          historyChart = null;
+        }
+        return;
+      }
+
+      empty.hidden = true;
+      canvas.hidden = false;
+
+      const topTickers = tickers.sort((a, b) => historicalDataMap[b].length - historicalDataMap[a].length).slice(0, 5);
+      
+      const timeSet = new Set();
+      topTickers.forEach(t => historicalDataMap[t].forEach(p => timeSet.add(p.time)));
+      const labels = Array.from(timeSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+      
+      const datasets = topTickers.map((ticker, i) => {
+         const colors = ["#0891b2", "#2563eb", "#7c3aed", "#65a30d", "#f97316"];
+         const bgColors = ["rgba(8, 145, 178, 0.2)", "rgba(37, 99, 235, 0.2)", "rgba(124, 58, 237, 0.2)", "rgba(101, 163, 13, 0.2)", "rgba(249, 115, 22, 0.2)"];
+         const data = labels.map(l => {
+             const point = historicalDataMap[ticker].find(p => p.time === l);
+             return point ? point.price : null;
+         });
+         return {
+             label: ticker,
+             data: data,
+             borderColor: colors[i % colors.length],
+             backgroundColor: bgColors[i % bgColors.length],
+             borderWidth: 2,
+             fill: true,
+             pointRadius: 0,
+             pointHoverRadius: 6,
+             tension: 0,
+             spanGaps: true
+         };
+      });
+
+      const formattedLabels = labels.map(l => {
+          const d = new Date(l);
+          return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
+      });
+
+      if (historyChart) {
+        historyChart.data.labels = formattedLabels;
+        historyChart.data.datasets = datasets;
+        historyChart.update();
+        return;
+      }
+
+      const mutedColor = getComputedStyle(document.body).getPropertyValue("--muted").trim();
+
+      historyChart = new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: formattedLabels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: mutedColor }
+            }
+          },
+           scales: {
+            x: {
+              ticks: { 
+                color: mutedColor,
+                autoSkip: true,
+                maxTicksLimit: 8
+              },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: mutedColor },
+              grid: { color: getComputedStyle(document.body).getPropertyValue("--line").trim(), borderDash: [5, 5] }
+            }
+          }
+        }
+      });
     }
 
     function renderLatestNews(rows) {
@@ -1198,9 +1416,14 @@
         const data = await response.json();
         const spark = data.spark || {};
 
-        updateMarketMetrics(data);
-        renderTickerTape(data.live_api || []);
-        renderLiveStocks(data.live_api || []);
+        const processed = processLiveData(data.live_api || []);
+
+        updateMarketMetrics(data, processed.liveRows);
+        renderTickerTape(processed.liveRows);
+        renderLiveStocks(processed.liveRows);
+        renderHistoryTable(processed.historyRows);
+        renderHistoryChart();
+
         renderLatestNews(data.live_rss || []);
         renderReturnTable(spark.analisis_1_return || []);
         renderVolatilityTable(spark.analisis_2_volatilitas || []);
@@ -1219,7 +1442,7 @@
 
     initTheme();
     fetchData();
-    setInterval(fetchData, 30000);
+    setInterval(fetchData, 5000);
   </script>
 </body>
 </html>

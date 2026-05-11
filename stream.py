@@ -37,7 +37,7 @@ def load_config() -> StreamConfig:
         hdfs_default_fs=hdfs_default_fs,
         output_path=os.getenv(
             "HDFS_OUTPUT_PATH",
-            f"{hdfs_default_fs}/data/saham/hasil",
+            f"{hdfs_default_fs}/data/saham/api",
         ),
         checkpoint_path=os.getenv(
             "SPARK_CHECKPOINT_PATH",
@@ -188,9 +188,9 @@ def decode_saham_json(kafka_df: DataFrame) -> DataFrame:
     )
 
 
-def write_to_hdfs_parquet(stream_df: DataFrame, config: StreamConfig) -> StreamingQuery:
+def write_to_hdfs_json(stream_df: DataFrame, config: StreamConfig) -> StreamingQuery:
     return (
-        stream_df.writeStream.format("parquet")
+        stream_df.writeStream.format("json")
         .option("path", config.output_path)
         .option("checkpointLocation", config.checkpoint_path)
         .outputMode("append")
@@ -215,7 +215,7 @@ def main() -> int:
     try:
         kafka_df = read_kafka_stream(spark, config)
         stream_df = decode_saham_json(kafka_df)
-        query = write_to_hdfs_parquet(stream_df, config)
+        query = write_to_hdfs_json(stream_df, config)
 
         log.info("Streaming query started: %s", query.id)
         query.awaitTermination()
