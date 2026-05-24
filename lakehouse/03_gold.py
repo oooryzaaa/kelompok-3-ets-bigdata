@@ -2,6 +2,7 @@ import os
 os.environ['HADOOP_HOME'] = "C:\\hadoop"
 os.environ['hadoop.home.dir'] = "C:\\hadoop"
 
+from flask import json
 from pyspark.sql import SparkSession
 from pyspark.sql import Window
 from pyspark.sql.functions import (
@@ -118,3 +119,33 @@ print(f"gold/top_mover_harian    : {g2.count()} rows, {len(g2.columns)} columns"
 print("\nGold layer complete. Flask dashboard bisa baca dari path di atas.")
 
 spark.stop()
+
+# =============================================
+# EXPORT GOLD KE JSON UNTUK FLASK DASHBOARD
+# =============================================
+import os
+print("\nExporting Gold tables to JSON for Flask...")
+
+os.makedirs("data", exist_ok=True)
+
+# Export summary_per_ticker → gold_return.json
+gold_return_data = spark.read.format("delta") \
+    .load("lakehouse_data/gold/summary_per_ticker") \
+    .toPandas() \
+    .to_dict(orient="records")
+
+with open("data/gold_return.json", "w", encoding="utf-8") as f:
+    json.dump(gold_return_data, f, ensure_ascii=False, indent=2, default=str)
+print("Exported: data/gold_return.json")
+
+# Export top_mover_harian → gold_volatilitas.json
+gold_volatilitas_data = spark.read.format("delta") \
+    .load("lakehouse_data/gold/top_mover_harian") \
+    .toPandas() \
+    .to_dict(orient="records")
+
+with open("data/gold_volatilitas.json", "w", encoding="utf-8") as f:
+    json.dump(gold_volatilitas_data, f, ensure_ascii=False, indent=2, default=str)
+print("Exported: data/gold_volatilitas.json")
+
+print("\nDone! Sekarang jalankan Flask: python app.py")
