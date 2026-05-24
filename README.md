@@ -284,6 +284,52 @@ docker exec -it kafka-broker kafka-console-consumer --topic saham-api --from-beg
 - Field is_simulated: true menandakan data hasil simulator
 - Jalankan setelah Bagian A (infrastruktur) sudah aktif
 
+# Bronze Layer: Data Ingestion ( Nadia Kirana Afifah Prahandita ) 
+
+
+Dokumentasi teknis untuk komponen **Bronze Layer** pada pipeline *SahamMeter*. Komponen ini bertanggung jawab melakukan ekstraksi data mentah (*raw*) dari sumber eksternal dan melakukan persistensi data dalam format yang efisien untuk analisis lanjut.
+
+## Daftar Isi
+* [Deskripsi](#deskripsi)
+* [Alur Kerja](#alur-kerja)
+* [Implementasi Teknis](#implementasi-teknis)
+* [Cara Menjalankan & Validasi](#cara-menjalankan--validasi)
+* [Bukti Sistem Berjalan](#bukti-sistem-berjalan)
+
+## Deskripsi
+Bronze Layer bertugas melakukan *ingestion* data dari API Saham dan RSS Feed Berita secara periodik. Data yang diambil langsung dikonversi ke dalam format **Apache Parquet**. Pendekatan ini memastikan data tersimpan dalam bentuk *schema-enforced* dan terkompresi dengan baik sebelum masuk ke tahap transformasi di *Silver Layer*.
+
+## Alur Kerja
+1. Melakukan *request* data dari API dan *fetch* URL RSS feed.
+2. Memproses data mentah menggunakan Apache Spark.
+3. Melakukan konversi format dari JSON menjadi **Apache Parquet**.
+4. Menyimpan *output* ke folder `lakehouse_data/`.
+5. Memberikan log status keberhasilan proses di terminal.
+
+## Implementasi Teknis
+* **Teknologi:** Python, Apache Spark.
+* **Format Penyimpanan:** Apache Parquet.
+* **Keunggulan:** Mendukung *columnar storage* yang mempercepat *query* dan kompresi tinggi untuk penyimpanan data dalam jumlah besar.
+
+## Cara Menjalankan & Validasi
+Untuk menjalankan proses ingestion dari sumber data ke sistem:
+```
+# Menjalankan script Bronze Layer
+python lakehouse/01_bronze.py
+
+```
+**Penjelasan Command:**
+
+`python lakehouse/01_bronze.py`: Menjalankan worker Spark yang bertugas melakukan extract dari API, merapikan skema data, dan melakukan write ke format `.parquet` di dalam direktori `lakehouse_data/`.
+Cara Validasi Hasil:
+Setelah menjalankan perintah, pastikan file `.parquet` sudah terbentuk di dalam folder `lakehouse_data/`.
+
+## Bukti Sistem Berjalan
+Output eksekusi pada terminal menunjukkan proses berjalan sukses:
+
+<img width="1045" height="298" alt="image" src="https://github.com/user-attachments/assets/11dd41fc-c24d-437d-adde-b0c60f5d8fee" />
+
+
 
 # Producer RSS & Consumer to HDFS (Putri Joselina Silitonga)
 
