@@ -58,3 +58,14 @@ jupyter notebook spark/analysis.ipynb
 
 [E]
 python dashboard/app.py
+
+
+[lake house]
+source venv/bin/activate
+
+# 1. Pastikan Silver sudah ada (jalankan 02_silver.py dulu)
+# 2. Jalankan Gold
+python lakehouse/03_gold.py
+
+# 3. Jalankan Dashboard
+python dashboard/app.py
