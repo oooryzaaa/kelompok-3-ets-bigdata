@@ -90,4 +90,4 @@ python lakehouse/02_silver.py
 python lakehouse/03_gold.py
 
 # 5. Jalankan Flask
-python app.py
+python dashboard/app.py

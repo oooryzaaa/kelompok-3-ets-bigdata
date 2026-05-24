@@ -178,3 +178,123 @@ python lakehouse/cek_data.py
 ## Hasil
 ![result](../image/result.jpeg)
 ![result2](../image/result2.jpeg)
+
+# 3. Gold Layer & Flask Dashboard Update (Oryza Qiara Ramadhani)
+
+## Tugas yang Dikerjakan
+
+- `03_gold.py` — Membangun 2 tabel Gold dari Silver layer (Delta Lake)
+- `app.py` — Update Flask Dashboard agar membaca dari tabel Delta 
+
+---
+
+## Arsitektur Gold Layer
+
+```
+Silver (Delta Lake)
+    ├── lakehouse_data/silver/saham_api   ← data bersih + Z-Score
+    └── lakehouse_data/silver/saham_rss   ← data bersih + cast timestamp
+                        ↓
+                  03_gold.py
+                        ↓
+Gold (Delta Lake)
+    ├── lakehouse_data/gold/summary_per_ticker   ← ringkasan per ticker
+    └── lakehouse_data/gold/top_mover_harian     ← top gainer & loser per hari
+                        ↓
+              Export ke JSON
+                        ↓
+    ├── data/gold_return.json       ← dibaca Flask
+    └── data/gold_volatilitas.json  ← dibaca Flask
+```
+
+---
+
+## Tabel Gold yang Dihasilkan — 03_gold.py
+
+### Gold Table 1: Summary Per Ticker
+
+Mereproduksi analisis ETS lama: ringkasan performa setiap emiten.
+
+| Kolom | Keterangan |
+|-------|-----------|
+| `ticker` | Kode emiten saham |
+| `avg_harga` | Rata-rata harga penutupan |
+| `min_harga` | Harga terendah |
+| `max_harga` | Harga tertinggi |
+| `total_volume` | Total volume transaksi |
+| `avg_volume` | Rata-rata volume per sesi |
+| `avg_return_pct` | Rata-rata persentase return |
+| `avg_price_range` | Rata-rata selisih high-low (indikator volatilitas) |
+| `jumlah_data_points` | Jumlah record yang dianalisis |
+| `jumlah_outlier` | Jumlah data harga anomali (Z-Score > 2) |
+
+### Gold Table 2: Top Mover Per Hari
+
+Mereproduksi analisis ETS lama: emiten dengan pergerakan paling ekstrem tiap hari.
+
+| Kolom | Keterangan |
+|-------|-----------|
+| `tanggal` | Tanggal sesi perdagangan |
+| `top_gainer_ticker` | Emiten dengan return tertinggi |
+| `top_gainer_return_pct` | Persentase return tertinggi |
+| `top_gainer_harga` | Harga penutupan top gainer |
+| `top_loser_ticker` | Emiten dengan return terendah |
+| `top_loser_return_pct` | Persentase return terendah |
+| `top_loser_harga` | Harga penutupan top loser |
+
+### Hasil Output
+
+```
+gold/summary_per_ticker  : 10 rows, 13 columns
+gold/top_mover_harian    :  1 rows,  7 columns
+```
+
+---
+
+## Update Flask Dashboard — app.py
+
+### Perbandingan: Sebelum vs Sesudah
+
+| Aspek | Sebelum (ETS) | Sesudah (Lakehouse) |
+|-------|--------------|---------------------|
+| Sumber data Gold | File JSON dari HDFS | Tabel Delta Lake |
+| Cara update data | Spark analysis.ipynb manual | Jalankan 03_gold.py |
+| Format perantara | JSON dari HDFS | JSON di-export dari Delta |
+| Route `/api/gold/return` | Baca `gold_return.json` dari HDFS | Baca `gold_return.json` dari Delta export |
+| Route `/api/gold/volatilitas` | Baca `gold_volatilitas.json` dari HDFS | Baca `gold_volatilitas.json` dari Delta export |
+
+> Flask tidak perlu diubah strukturnya — cukup pastikan `03_gold.py` dijalankan lebih dulu agar JSON yang dibaca Flask sudah berasal dari Delta, bukan dari HDFS lagi.
+
+### Alur Kerja Baru
+
+```
+python lakehouse/03_gold.py   ← generate Delta + export JSON
+python app.py                 ← Flask baca JSON hasil Delta
+```
+
+---
+
+## Cara Menjalankan
+
+```bash
+# Aktifkan virtual environment
+source venv/bin/activate
+
+# Jalankan Gold layer + export JSON
+python lakehouse/03_gold.py
+
+# Jalankan Flask Dashboard
+python app.py
+# Buka http://localhost:5000
+```
+
+---
+
+## Screenshot Output
+
+### 03_gold.py
+![alt text](<../image/gold table.png>)
+![alt text](<../image/gold table2.png>)
+
+### Flask Dashboard (data dari Delta)
+![alt text](<../image/dashboard delta.png>)
