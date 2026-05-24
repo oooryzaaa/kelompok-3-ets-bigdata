@@ -69,3 +69,25 @@ python lakehouse/03_gold.py
 
 # 3. Jalankan Dashboard
 python dashboard/app.py
+
+
+
+# 1. Nyalain Docker dulu (Hadoop + Kafka)
+docker compose -f docker-compose-hadoop.yml up -d
+docker compose -f docker-compose-kafka.yml up -d
+
+# 2. Tunggu ~30 detik, lalu jalankan consumer (background)
+python kafka/consumer_to_hdfs.py &
+
+# 3. Jalankan producers (background)
+python kafka/producer_api.py &
+python kafka/producer_rss.py &
+
+# 4. Tunggu ~5 menit biar data masuk ke HDFS
+# lalu jalankan pipeline lakehouse
+python lakehouse/01_bronze.py
+python lakehouse/02_silver.py
+python lakehouse/03_gold.py
+
+# 5. Jalankan Flask
+python app.py
