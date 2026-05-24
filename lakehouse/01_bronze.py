@@ -23,7 +23,7 @@ try:
                           .withColumn("_source", lit("api_yfinance"))
     
     os.makedirs(save_path_api, exist_ok=True)
-    bronze_api_df.toPandas().to_parquet(f"{save_path_api}/data.parquet", index=False)
+    bronze_api_df.toPandas().to_parquet(f"{save_path_api}/data.parquet", index=False, coerce_timestamps="ms", use_deprecated_int96_timestamps=False, allow_truncated_timestamps=True)
     print("✅ Data API Saham berhasil diubah ke format Parquet (Bronze Layer)!")
 except Exception as e:
     print(f"❌ Gagal memproses data API Saham: {e}")
@@ -37,7 +37,7 @@ try:
                           .withColumn("_source", lit("rss_berita"))
     
     os.makedirs(save_path_rss, exist_ok=True)
-    bronze_rss_df.toPandas().to_parquet(f"{save_path_rss}/data.parquet", index=False)
+    bronze_rss_df.toPandas().to_parquet(f"{save_path_rss}/data.parquet", index=False, coerce_timestamps="ms", use_deprecated_int96_timestamps=False, allow_truncated_timestamps=True)
     print("✅ Data RSS Berita berhasil diubah ke format Parquet (Bronze Layer)!")
 except Exception as e:
     print(f"❌ Gagal memproses data RSS Berita: {e}")
