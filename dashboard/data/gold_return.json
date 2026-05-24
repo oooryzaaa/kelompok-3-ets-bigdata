@@ -1,0 +1,82 @@
+[
+  {
+    "ticker": "TLKM",
+    "avg_harga": 4181.25,
+    "avg_return_pct": 0.601,
+    "avg_open": 4156.3,
+    "label": "0.601",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "GOTO",
+    "avg_harga": 82.9,
+    "avg_return_pct": 0.4749,
+    "avg_open": 82.51,
+    "label": "0.4749",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "BBRI",
+    "avg_harga": 4842.43,
+    "avg_return_pct": 0.4341,
+    "avg_open": 4821.69,
+    "label": "0.4341",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "BMRI",
+    "avg_harga": 5532.86,
+    "avg_return_pct": 0.2736,
+    "avg_open": 5518.01,
+    "label": "0.2736",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "INDF",
+    "avg_harga": 7399.22,
+    "avg_return_pct": 0.2264,
+    "avg_open": 7382.53,
+    "label": "0.2264",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "ICBP",
+    "avg_harga": 11866.43,
+    "avg_return_pct": 0.1893,
+    "avg_open": 11845.21,
+    "label": "0.1893",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "PGAS",
+    "avg_harga": 1593.9,
+    "avg_return_pct": -0.0009,
+    "avg_open": 1594.0,
+    "label": "-9.0E-4",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "UNVR",
+    "avg_harga": 2082.21,
+    "avg_return_pct": -0.2918,
+    "avg_open": 2088.39,
+    "label": "-0.2918",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "ASII",
+    "avg_harga": 5281.87,
+    "avg_return_pct": -0.3632,
+    "avg_open": 5301.25,
+    "label": "-0.3632",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  },
+  {
+    "ticker": "BBCA",
+    "avg_harga": 9464.18,
+    "avg_return_pct": -0.9074,
+    "avg_open": 9550.79,
+    "label": "-0.9074",
+    "_created_at": "2026-05-24 19:15:51.842039"
+  }
+]

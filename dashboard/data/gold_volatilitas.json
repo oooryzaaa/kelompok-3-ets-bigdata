@@ -1,0 +1,82 @@
+[
+  {
+    "ticker": "BBCA",
+    "volatilitas": 166.5564,
+    "avg_price_range": 154.86,
+    "jumlah_data": 5,
+    "kategori_risiko": 166.5564,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "ICBP",
+    "volatilitas": 95.7077,
+    "avg_price_range": 180.53,
+    "jumlah_data": 5,
+    "kategori_risiko": 95.7077,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "INDF",
+    "volatilitas": 77.6125,
+    "avg_price_range": 110.8,
+    "jumlah_data": 5,
+    "kategori_risiko": 77.6125,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "TLKM",
+    "volatilitas": 46.3879,
+    "avg_price_range": 74.61,
+    "jumlah_data": 5,
+    "kategori_risiko": 46.3879,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "BMRI",
+    "volatilitas": 39.4194,
+    "avg_price_range": 97.86,
+    "jumlah_data": 5,
+    "kategori_risiko": 39.4194,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "ASII",
+    "volatilitas": 27.0527,
+    "avg_price_range": 62.62,
+    "jumlah_data": 5,
+    "kategori_risiko": 27.0527,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "UNVR",
+    "volatilitas": 19.4773,
+    "avg_price_range": 23.27,
+    "jumlah_data": 5,
+    "kategori_risiko": 19.4773,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "BBRI",
+    "volatilitas": 15.3121,
+    "avg_price_range": 72.86,
+    "jumlah_data": 5,
+    "kategori_risiko": 15.3121,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "PGAS",
+    "volatilitas": 8.6263,
+    "avg_price_range": 24.07,
+    "jumlah_data": 5,
+    "kategori_risiko": 8.6263,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  },
+  {
+    "ticker": "GOTO",
+    "volatilitas": 0.673,
+    "avg_price_range": 1.47,
+    "jumlah_data": 5,
+    "kategori_risiko": 0.673,
+    "_created_at": "2026-05-24 19:15:54.099057"
+  }
+]
