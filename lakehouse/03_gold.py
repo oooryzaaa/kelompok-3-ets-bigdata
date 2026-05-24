@@ -187,37 +187,32 @@ print("Saved: lakehouse_data/gold/momentum_anomali")
 # =============================================
 print("\n--- Building Gold Table 4: Sentiment vs Market Movement ---")
 
+from pyspark.sql.functions import lit
+
 api_join = silver_api.select(
     "ticker",
     "harga",
     "return_pct",
-    "timestamp",
-    "jam"
+    "timestamp"
 )
 
 rss_join = silver_rss.select(
     "judul",
     "sumber",
     "sentimen",
-    "waktu_terbit",
-    "jam"
+    "waktu_terbit"
 )
 
-gold_sentiment_market = api_join.join(
-    rss_join,
-    on="jam",
-    how="inner"
-)
+# Cross join lalu tambahkan kolom market_match
+gold_sentiment_market = api_join.crossJoin(rss_join)
 
 gold_sentiment_market = gold_sentiment_market.withColumn(
     "market_match",
     when(
-        (col("sentimen") == "positif") &
-        (col("return_pct") > 0),
+        (col("sentimen") == "positif") & (col("return_pct") > 0),
         "SEJALAN_POSITIF"
     ).when(
-        (col("sentimen") == "negatif") &
-        (col("return_pct") < 0),
+        (col("sentimen") == "negatif") & (col("return_pct") < 0),
         "SEJALAN_NEGATIF"
     ).otherwise("TIDAK_SEJALAN")
 )
@@ -231,12 +226,11 @@ gold_sentiment_market_final = gold_sentiment_market.select(
     "sentimen",
     "market_match",
     "timestamp",
-    "waktu_terbit",
-    "jam"
+    "waktu_terbit"
 )
 
 print("Gold Table 4 - Sentiment vs Market:")
-gold_sentiment_market_final.show(truncate=False)
+gold_sentiment_market_final.show(10, truncate=False)
 
 gold_sentiment_market_final.write.format("delta").mode("overwrite") \
     .option("overwriteSchema", "true") \
