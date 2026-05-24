@@ -1,8 +1,8 @@
 import os
+import json
 os.environ['HADOOP_HOME'] = "C:\\hadoop"
 os.environ['hadoop.home.dir'] = "C:\\hadoop"
 
-from flask import json
 from pyspark.sql import SparkSession
 from pyspark.sql import Window
 from pyspark.sql.functions import (
@@ -39,7 +39,6 @@ print(f"Silver RSS : {silver_rss.count()} rows")
 
 # =============================================
 # GOLD TABLE 1: RINGKASAN PER TICKER
-# Reproduksi dari ETS: rata-rata harga, total volume, avg return
 # =============================================
 print("\n--- Building Gold Table 1: Summary Per Ticker ---")
 
@@ -67,17 +66,16 @@ gold_summary.write.format("delta").mode("overwrite") \
 print("Saved: lakehouse_data/gold/summary_per_ticker")
 
 # =============================================
-# GOLD TABLE 2: TOP MOVER (RETURN TERTINGGI & TERENDAH)
-# Reproduksi dari ETS: ticker terbaik dan terburuk per hari
+# GOLD TABLE 2: TOP MOVER PER HARI
 # =============================================
 print("\n--- Building Gold Table 2: Top Mover Per Hari ---")
 
 silver_with_date = silver_api.withColumn("tanggal", to_date(col("timestamp")))
 
-window_by_date = Window.partitionBy("tanggal").orderBy(desc("return_pct"))
+window_by_date     = Window.partitionBy("tanggal").orderBy(desc("return_pct"))
 window_by_date_asc = Window.partitionBy("tanggal").orderBy(asc("return_pct"))
 
-ranked_top = silver_with_date.withColumn("rank_return", rank().over(window_by_date))
+ranked_top    = silver_with_date.withColumn("rank_return",     rank().over(window_by_date))
 ranked_bottom = silver_with_date.withColumn("rank_return_asc", rank().over(window_by_date_asc))
 
 top_gainer = ranked_top.filter(col("rank_return") == 1).select(
@@ -116,36 +114,25 @@ g2 = spark.read.format("delta").load("lakehouse_data/gold/top_mover_harian")
 
 print(f"gold/summary_per_ticker  : {g1.count()} rows, {len(g1.columns)} columns")
 print(f"gold/top_mover_harian    : {g2.count()} rows, {len(g2.columns)} columns")
-print("\nGold layer complete. Flask dashboard bisa baca dari path di atas.")
-
-spark.stop()
 
 # =============================================
 # EXPORT GOLD KE JSON UNTUK FLASK DASHBOARD
 # =============================================
-import os
 print("\nExporting Gold tables to JSON for Flask...")
 
 os.makedirs("data", exist_ok=True)
 
-# Export summary_per_ticker → gold_return.json
-gold_return_data = spark.read.format("delta") \
-    .load("lakehouse_data/gold/summary_per_ticker") \
-    .toPandas() \
-    .to_dict(orient="records")
-
+gold_return_data = g1.toPandas().to_dict(orient="records")
 with open("data/gold_return.json", "w", encoding="utf-8") as f:
     json.dump(gold_return_data, f, ensure_ascii=False, indent=2, default=str)
 print("Exported: data/gold_return.json")
 
-# Export top_mover_harian → gold_volatilitas.json
-gold_volatilitas_data = spark.read.format("delta") \
-    .load("lakehouse_data/gold/top_mover_harian") \
-    .toPandas() \
-    .to_dict(orient="records")
-
+gold_volatilitas_data = g2.toPandas().to_dict(orient="records")
 with open("data/gold_volatilitas.json", "w", encoding="utf-8") as f:
     json.dump(gold_volatilitas_data, f, ensure_ascii=False, indent=2, default=str)
 print("Exported: data/gold_volatilitas.json")
 
-print("\nDone! Sekarang jalankan Flask: python app.py")
+print("\nGold layer complete. Sekarang jalankan Flask: python app.py")
+
+# spark.stop() selalu paling bawah!
+spark.stop()
