@@ -299,7 +299,7 @@ python app.py
 ### Flask Dashboard (data dari Delta)
 ![alt text](<../image/dashboard delta.png>)
 
-# 4. Advanced Gold Analytics & Cross-Source Intelligence 
+# 4. Advanced Gold Analytics & Cross-Source Intelligence (Gemilang Lingua)
 
 Dokumentasi teknis untuk pengembangan **Gold Layer lanjutan** pada pipeline *SahamMeter*. Fokus utama pada tahap ini adalah membangun analisis tingkat lanjut menggunakan fitur advanced PySpark seperti **Window Function**, **lag()**, dan **cross-source join** antara data saham dan berita.
 
