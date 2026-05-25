@@ -1,3 +1,4 @@
+
 import os
 os.environ['HADOOP_HOME'] = "C:\\hadoop"
 os.environ['hadoop.home.dir'] = "C:\\hadoop"
@@ -23,7 +24,7 @@ spark.sparkContext.setLogLevel("WARN")
 SILVER_PATH = "lakehouse_data/silver/saham_api"
 
 print("=" * 60)
-print("TIME TRAVEL DEMO - DELTA LAKE (SahamMeter)")
+print("TIME TRAVEL - DELTA LAKE (SahamMeter)")
 print("=" * 60)
 
 dt = DeltaTable.forPath(spark, SILVER_PATH)
@@ -52,12 +53,12 @@ v1 = spark.read.format("delta").option("versionAsOf", 1).load(SILVER_PATH)
 print(f"Version 1 - Post UPDATE")
 print(f"Total rows  : {v1.count()}")
 
-# Operasi 2 - DELETE
+# Operasi 2 - DELETE  ← DIPERBAIKI
 print("\n" + "-" * 60)
 print("Operation 2: DELETE - remove rows with return_pct NULL")
 
 dt2 = DeltaTable.forPath(spark, SILVER_PATH)
-dt2.delete(condition=col("ticker") == "GOTO")
+dt2.delete(condition=col("return_pct").isNull())  # ← DIPERBAIKI
 
 v2 = spark.read.format("delta").option("versionAsOf", 2).load(SILVER_PATH)
 count_v2 = v2.count()
